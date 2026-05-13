@@ -174,27 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Other renders
-    function renderHemodialysis() {
-        const grid = document.getElementById('hemo-machines-grid');
-        if (!grid) return;
-        grid.innerHTML = '';
-        for (let i = 1; i <= 12; i++) {
-            const status = i % 4 === 0 ? 'Mantenimiento' : (i % 3 === 0 ? 'Disponible' : 'Activo');
-            const statusClass = status === 'Activo' ? 'success' : (status === 'Disponible' ? 'primary' : 'danger');
-            const bp = 110 + Math.floor(Math.random() * 20);
-            const sys = 70 + Math.floor(Math.random() * 15);
-            const card = document.createElement('div');
-            card.className = 'glass-card fade-in';
-            card.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-                    <div><p style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">MÁQUINA #${i.toString().padStart(2, '0')}</p><h4 style="font-weight: 700;">Fresenius T500</h4></div>
-                    <span style="background: rgba(${statusClass === 'success' ? '16, 185, 129' : (statusClass === 'primary' ? '0, 102, 255' : '239, 68, 68')}, 0.1); color: var(--${statusClass}); padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase;">${status}</span>
-                </div>
-                ${status === 'Activo' ? `<div style="display: flex; gap: 15px; margin-bottom: 15px;"><div style="flex: 1;"><p style="font-size: 10px; color: var(--text-secondary);">Presión Arterial</p><p style="font-size: 16px; font-weight: 700; color: var(--primary);">${bp}/${sys}</p></div><div style="flex: 1;"><p style="font-size: 10px; color: var(--text-secondary);">Oxígeno SpO2</p><p style="font-size: 16px; font-weight: 700; color: var(--success);">98%</p></div></div><div style="height: 4px; background: #eee; border-radius: 2px; position: relative;"><div style="position: absolute; left: 0; top: 0; height: 100%; width: 65%; background: var(--primary); border-radius: 2px; box-shadow: 0 0 10px var(--primary-glow);"></div></div><p style="font-size: 10px; text-align: right; margin-top: 5px; color: var(--text-secondary);">Tiempo restante: 1h 45m</p>` : `<div style="height: 80px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary);"><i class="fas ${status === 'Disponible' ? 'fa-check-circle' : 'fa-tools'}" style="font-size: 24px; opacity: 0.3;"></i></div>`}
-            `;
-            grid.appendChild(card);
-        }
-    }
 
     function renderMemberships() {
         const tbody = document.getElementById('membership-list');
@@ -359,138 +338,11 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('🔄 Finanzas reiniciadas');
     };
 
-    // Medina Agenda Logic
-    let medinaAgendaData = JSON.parse(localStorage.getItem('medinaAgendaData')) || {};
-    const medinaAgendaDays = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-    const medinaAgendaTimes = ["07:00 am", "11:00 am", "15:00 pm"];
-    const medinaAgendaMachines = [1, 2, 3, 4];
-
-    window.renderMedinaAgenda = function() {
-        const container = document.getElementById('medinaAgendaContainer');
-        if (!container) return;
-
-        container.innerHTML = `
-            <div class="medina-agenda-grid">
-                <div class="medina-agenda-header">
-                    <div class="m-day-col">Turno</div>
-                    ${medinaAgendaDays.map(d => `<div class="m-day-col">${d}</div>`).join('')}
-                </div>
-                <div style="flex: 1; overflow-y: auto;">
-                    ${medinaAgendaTimes.map(time => `
-                        <div class="medina-agenda-row">
-                            <div class="m-time-cell">${time}</div>
-                            ${medinaAgendaDays.map(day => `
-                                <div class="m-agenda-cell">
-                                    <div class="m-machine-grid">
-                                        ${medinaAgendaMachines.map(m => {
-                                            const key = `${day}-${time}-${m}`;
-                                            const data = medinaAgendaData[key];
-                                            const isEmpty = !data || !data.name;
-                                            return `
-                                                <div class="m-machine-slot ${isEmpty ? 'empty' : ''}" 
-                                                     onclick="openMedinaAgendaModal('${day}', '${time}', ${m})"
-                                                     ondragover="event.preventDefault(); this.classList.add('drag-over')"
-                                                     ondragleave="this.classList.remove('drag-over')"
-                                                     ondrop="handleMedinaAgendaDrop(event, '${key}')">
-                                                    <span class="m-slot-label">M${m}</span>
-                                                    ${!isEmpty ? `
-                                                        <div class="m-patient-card" draggable="true" ondragstart="event.dataTransfer.setData('text/plain', '${key}')">
-                                                            <span class="m-patient-name">${data.name}</span>
-                                                            <span class="m-patient-status status-${data.status}">${data.status}</span>
-                                                        </div>
-                                                    ` : '<i class="fas fa-plus" style="opacity:0.3"></i>'}
-                                                </div>
-                                            `;
-                                        }).join('')}
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-        updateMedinaAgendaStats();
-    };
-
-    function updateMedinaAgendaStats() {
-        let count = 0;
-        const total = medinaAgendaDays.length * medinaAgendaTimes.length * medinaAgendaMachines.length;
-        Object.values(medinaAgendaData).forEach(d => { if(d.name) count++; });
-        
-        if(document.getElementById('medina-count-patients')) document.getElementById('medina-count-patients').textContent = count;
-        if(document.getElementById('medina-count-available')) document.getElementById('medina-count-available').textContent = total - count;
-    }
-
-    window.openMedinaAgendaModal = function(day, time, machine) {
-        const key = `${day}-${time}-${machine}`;
-        const data = medinaAgendaData[key] || { name: '', type: 'fijo', status: 'confirmado', obs: '' };
-
-        document.getElementById('m-apm-day').value = day;
-        document.getElementById('m-apm-time').value = time;
-        document.getElementById('m-apm-machine').value = machine;
-        document.getElementById('medina-apm-title').textContent = `${day} - ${time} (M${machine})`;
-
-        document.getElementById('m-apm-name').value = data.name;
-        document.getElementById('m-apm-type').value = data.type || 'fijo';
-        document.getElementById('m-apm-status').value = data.status || 'confirmado';
-        document.getElementById('m-apm-obs').value = data.obs || '';
-
-        document.getElementById('m-apm-delete').style.display = data.name ? 'block' : 'none';
-        document.getElementById('medinaAgendaModal').style.display = 'flex';
-    };
-
-    window.closeMedinaAgendaModal = function() {
-        document.getElementById('medinaAgendaModal').style.display = 'none';
-    };
-
-    window.saveMedinaAgendaItem = function() {
-        const day = document.getElementById('m-apm-day').value;
-        const time = document.getElementById('m-apm-time').value;
-        const machine = document.getElementById('m-apm-machine').value;
-        const name = document.getElementById('m-apm-name').value;
-
-        if(!name) return showToast('⚠️ Nombre requerido');
-
-        const key = `${day}-${time}-${machine}`;
-        medinaAgendaData[key] = {
-            name,
-            type: document.getElementById('m-apm-type').value,
-            status: document.getElementById('m-apm-status').value,
-            obs: document.getElementById('m-apm-obs').value
-        };
-
-        localStorage.setItem('medinaAgendaData', JSON.stringify(medinaAgendaData));
-        renderMedinaAgenda();
-        closeMedinaAgendaModal();
-        showToast('✅ Turno guardado');
-    };
-
-    window.deleteMedinaAgendaItem = function() {
-        const key = `${document.getElementById('m-apm-day').value}-${document.getElementById('m-apm-time').value}-${document.getElementById('m-apm-machine').value}`;
-        delete medinaAgendaData[key];
-        localStorage.setItem('medinaAgendaData', JSON.stringify(medinaAgendaData));
-        renderMedinaAgenda();
-        closeMedinaAgendaModal();
-        showToast('🗑 Turno liberado');
-    };
-
-    window.handleMedinaAgendaDrop = function(e, targetKey) {
-        e.preventDefault();
-        const draggedKey = e.dataTransfer.getData('text/plain');
-        if (draggedKey && draggedKey !== targetKey) {
-            medinaAgendaData[targetKey] = { ...medinaAgendaData[draggedKey] };
-            delete medinaAgendaData[draggedKey];
-            localStorage.setItem('medinaAgendaData', JSON.stringify(medinaAgendaData));
-            renderMedinaAgenda();
-            showToast('🚀 Turno movido');
-        }
-    };
 
     // Medina Inventory Logic
     let medinaInventory = JSON.parse(localStorage.getItem('medinaInventory')) || [
         { id: 1, name: 'Eritropoyetina 4000 UI', category: 'Medicamento', lote: 'EP-2024-01', expiry: '2025-12-30', gramaje: '1ml', stock: 45 },
-        { id: 2, name: 'Filtro Dializador F6', category: 'Hemodiálisis', lote: 'FL-88-X', expiry: '2026-06-15', gramaje: 'N/A', stock: 120 },
+        { id: 2, name: 'Gasas Estériles', category: 'Insumos', lote: 'GE-2024-X', expiry: '2026-06-15', gramaje: 'N/A', stock: 120 },
         { id: 3, name: 'Solución Salina 0.9%', category: 'General', lote: 'SS-500-B', expiry: '2025-08-20', gramaje: '500ml', stock: 200 }
     ];
     let medinaInvMovements = JSON.parse(localStorage.getItem('medinaInvMovements')) || [];
@@ -958,7 +810,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (pageName === 'payroll') renderMedinaPayroll();
-            if (pageName === 'hemodialysis') renderHemodialysis();
             if (pageName === 'memberships') renderMemberships();
             if (pageName === 'specialists') renderSpecialists();
             if (pageName === 'patients') renderPatients();
