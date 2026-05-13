@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salud Puebla | Clínica Medina OS</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Sidebar Navigation -->
+        <aside class="glass">
+            <div class="brand">
+                <h1>CLÍNICA MEDINA</h1>
+                <p>Salud Puebla</p>
+            </div>
+            
+            <nav class="nav-links">
+                <a class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a class="nav-item" data-page="hemodialysis">
+                    <i class="fas fa-lungs"></i>
+                    <span>Hemodiálisis</span>
+                </a>
+                <a class="nav-item" data-page="memberships">
+                    <i class="fas fa-id-card"></i>
+                    <span>Membresías</span>
+                </a>
+                <a class="nav-item" data-page="patients">
+                    <i class="fas fa-user-injured"></i>
+                    <span>Pacientes</span>
+                </a>
+                <a class="nav-item" data-page="schedule">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Agenda</span>
+                </a>
+                <a class="nav-item" data-page="attendance">
+                    <i class="fas fa-user-check"></i>
+                    <span>Asistencia</span>
+                </a>
+                <a class="nav-item" data-page="payroll">
+                    <i class="fas fa-money-check-alt"></i>
+                    <span>Nómina</span>
+                </a>
+                <a class="nav-item" data-page="specialists">
+                    <i class="fas fa-user-md"></i>
+                    <span>Especialistas</span>
+                </a>
+                <a class="nav-item" data-page="inventory">
+                    <i class="fas fa-boxes"></i>
+                    <span>Inventario</span>
+                </a>
+                <a class="nav-item" data-page="financial">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Finanzas</span>
+                </a>
+                <a class="nav-item" data-page="security">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Seguridad</span>
+                </a>
+            </nav>
+
+            <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border);">
+                <div class="nav-item" style="color: var(--danger);">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <header class="glass">
+            <div class="header-search">
+                <i class="fas fa-search" style="color: var(--text-secondary); margin-right: 12px;"></i>
+                <input type="text" placeholder="Buscar pacientes, estudios o médicos..." style="background: transparent; border: none; outline: none; width: 300px; font-size: 14px;">
+            </div>
+            <div class="header-actions" style="display: flex; align-items: center; gap: 24px;">
+                <div class="notification-bell" style="position: relative; cursor: pointer;">
+                    <i class="far fa-bell" style="font-size: 20px;"></i>
+                    <span style="position: absolute; top: -5px; right: -5px; background: var(--danger); width: 8px; height: 8px; border-radius: 50%; border: 2px solid white;"></span>
+                </div>
+                <div class="user-profile" style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                    <div style="text-align: right;">
+                        <p style="font-size: 14px; font-weight: 600;">Dr. Abraham M.</p>
+                        <p style="font-size: 11px; color: var(--text-secondary);">Administrador</p>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name=Abraham+Medina&background=0066FF&color=fff" alt="User" style="width: 40px; height: 40px; border-radius: 12px; object-fit: cover;">
+                </div>
+            </div>
+        </header>
+
+        <main id="main-content">
+            <!-- Sections will be injected here via script.js or defined as hidden divs -->
+            
+            <!-- Dashboard Overview -->
+            <section id="page-dashboard" class="page-section active fade-in">
+                <div class="glass-card" style="margin-bottom: 32px; padding: 0; overflow: hidden; height: 200px; position: relative;">
+                    <img src="/Users/Bi5M/.gemini/antigravity/brain/7ccee8db-44fe-4745-b122-daf04850807d/hospital_dashboard_hero_1778372550651.png" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;">
+                    <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white;">
+                        <h2 style="font-weight: 800;">Bienvenido, Dr. Medina</h2>
+                        <p style="font-size: 14px; opacity: 0.9;">Panel de Control | Salud Puebla & Clínica Medina</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="glass-card stat-card">
+                        <span class="stat-label">Pacientes Activos</span>
+                        <span class="stat-value">1,284</span>
+                        <span style="font-size: 12px; color: var(--success);"><i class="fas fa-arrow-up"></i> +12% este mes</span>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <span class="stat-label">Hemodiálisis Hoy</span>
+                        <span class="stat-value">42</span>
+                        <span style="font-size: 12px; color: var(--text-secondary);">12 en curso, 30 programadas</span>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <span class="stat-label">Máquinas Libres</span>
+                        <span class="stat-value">8/24</span>
+                        <span style="font-size: 12px; color: var(--warning);">2 en mantenimiento</span>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <span class="stat-label">Ingresos Hoy</span>
+                        <span class="stat-value">$18,450</span>
+                        <span style="font-size: 12px; color: var(--success); font-weight: 600;">MXN</span>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+                    <div class="glass-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3 style="font-weight: 700;">Actividad de Hemodiálisis</h3>
+                            <select class="glass" style="padding: 8px 12px; border-radius: 8px; font-size: 12px; border: 1px solid var(--border);">
+                                <option>Últimos 7 días</option>
+                                <option>Último mes</option>
+                            </select>
+                        </div>
+                        <canvas id="revenueChart" height="250"></canvas>
+                    </div>
+                    <div class="glass-card">
+                        <h3 style="font-weight: 700; margin-bottom: 20px;">Alertas Críticas</h3>
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div style="background: rgba(239, 68, 68, 0.1); padding: 16px; border-radius: 16px; border-left: 4px solid var(--danger);">
+                                <p style="font-weight: 600; font-size: 14px; color: var(--danger);">Mantenimiento Requerido</p>
+                                <p style="font-size: 12px; color: var(--text-secondary);">Máquina #04 Fresenius T500</p>
+                            </div>
+                            <div style="background: rgba(245, 158, 11, 0.1); padding: 16px; border-radius: 16px; border-left: 4px solid var(--warning);">
+                                <p style="font-weight: 600; font-size: 14px; color: var(--warning);">Stock Bajo: Catéteres</p>
+                                <p style="font-size: 12px; color: var(--text-secondary);">Menos de 10 unidades en almacén</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Other pages will be added dynamically or pre-defined -->
+            <section id="page-hemodialysis" class="page-section fade-in">
+                <h2 style="margin-bottom: 24px; font-weight: 800;">Panel de Control Hemodiálisis</h2>
+                <div class="stats-grid" id="hemo-machines-grid">
+                    <!-- Machines cards will be injected here -->
+                </div>
+            </section>
+
+            <section id="page-memberships" class="page-section fade-in">
+                <h2 style="margin-bottom: 24px; font-weight: 800;">Sistema de Membresías Salud Puebla</h2>
+                <div class="stats-grid">
+                    <div class="glass-card" style="border-top: 4px solid var(--primary);">
+                        <h3>Individual</h3>
+                        <p style="font-size: 24px; font-weight: 800; margin: 12px 0;">$350 MXN</p>
+                        <ul style="font-size: 13px; color: var(--text-secondary); list-style: none; display: flex; flex-direction: column; gap: 8px;">
+                            <li><i class="fas fa-check" style="color: var(--success);"></i> Consulta General Gratis</li>
+                            <li><i class="fas fa-check" style="color: var(--success);"></i> 50% Ultrasonido</li>
+                            <li><i class="fas fa-check" style="color: var(--success);"></i> 11va Hemodialisis Gratis</li>
+                        </ul>
+                    </div>
+                    <div class="glass-card" style="border-top: 4px solid var(--secondary);">
+                        <h3>Dúo</h3>
+                        <p style="font-size: 24px; font-weight: 800; margin: 12px 0;">$450 MXN</p>
+                        <ul style="font-size: 13px; color: var(--text-secondary); list-style: none; display: flex; flex-direction: column; gap: 8px;">
+                            <li><i class="fas fa-check" style="color: var(--success);"></i> Beneficios para 2 personas</li>
+                            <li><i class="fas fa-check" style="color: var(--success);"></i> 50% RX y Laboratorio</li>
+                            <li><i class="fas fa-check" style="color: var(--success);"></i> Descuentos en Farmacia</li>
+                        </ul>
+                    </div>
+                    <div class="glass-card" style="border-top: 4px solid var(--accent);">
+                        <h3>Familiar</h3>
+                        <p style="font-size: 24px; font-weight: 800; margin: 12px 0;">$499 MXN</p>
+                        <ul style="font-size: 13px; color: var(--text-secondary); list-style: none; display: flex; flex-direction: column; gap: 8px;">
+                            <li><i class="fas fa-check" style="color: var(--success);"></i> Hasta 4 integrantes</li>
+                            <li><i class="fas fa-check" style="color: var(--success);"></i> 20% en Especialistas</li>
+                            <li><i class="fas fa-check" style="color: var(--success);"></i> Ambulancia 24/7</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="glass-card" style="margin-top: 32px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h3 style="font-weight: 700;">Verificación de Membresía</h3>
+                        <button class="glass" style="padding: 10px 20px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer;">
+                            <i class="fas fa-qrcode"></i> Escanear QR
+                        </button>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">
+                                <th style="padding: 16px 0;">Socio</th>
+                                <th>ID Membresía</th>
+                                <th>Tipo</th>
+                                <th>Vencimiento</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="membership-list" style="font-size: 14px;">
+                            <!-- Members injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            <section id="page-patients" class="page-section fade-in">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 style="font-weight: 800;">Gestión de Pacientes</h2>
+                    <button class="glass" onclick="openModal('add-patient-modal')" style="padding: 10px 20px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-plus"></i> Nuevo Paciente
+                    </button>
+                </div>
+                <div class="glass-card">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;" id="patients-list">
+                        <!-- Patient profiles will be injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-specialists" class="page-section fade-in">
+                <h2 style="margin-bottom: 24px; font-weight: 800;">Directorio de Especialistas</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;" id="specialists-grid">
+                    <!-- Specialist cards injected here -->
+                </div>
+            </section>
+
+            <section id="page-inventory" class="page-section fade-in">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div>
+                        <h2 style="font-weight: 800;">Inventario y Farmacia</h2>
+                        <p style="color: var(--text-secondary); font-size: 14px;">Control de medicamentos e insumos de hemodiálisis</p>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="glass" onclick="openModal('medina-inv-movement-modal')" style="padding: 10px 20px; border-radius: 12px; background: rgba(0, 102, 255, 0.1); color: var(--primary); border: 1px solid var(--primary); font-weight: 600; cursor: pointer;">
+                            <i class="fas fa-exchange-alt"></i> Entrada/Salida
+                        </button>
+                        <button class="glass" onclick="openModal('medina-product-modal')" style="padding: 10px 20px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer;">
+                            <i class="fas fa-plus"></i> Nuevo Producto
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="glass-card">
+                        <span class="stat-label">Productos Totales</span>
+                        <span class="stat-value" id="inv-total-products">0</span>
+                    </div>
+                    <div class="glass-card">
+                        <span class="stat-label">Stock Crítico</span>
+                        <span class="stat-value" id="inv-critical-stock" style="color: var(--danger);">0</span>
+                    </div>
+                    <div class="glass-card">
+                        <span class="stat-label">Movimientos Hoy</span>
+                        <span class="stat-value" id="inv-movements-today">0</span>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="margin-top: 24px;">
+                    <h3 style="margin-bottom: 20px;">Existencias en Almacén</h3>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="color: var(--text-secondary); font-size: 11px; text-transform: uppercase;">
+                                    <th style="padding: 12px 0;">Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Lote</th>
+                                    <th>Caducidad</th>
+                                    <th>Gramaje</th>
+                                    <th>Stock</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="medina-inventory-tbody" style="font-size: 13px;"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="margin-top: 24px;">
+                    <h3 style="margin-bottom: 20px;">Historial de Movimientos</h3>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="color: var(--text-secondary); font-size: 11px; text-transform: uppercase;">
+                                    <th style="padding: 12px 0;">Fecha</th>
+                                    <th>Producto</th>
+                                    <th>Tipo</th>
+                                    <th>Cantidad</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody id="medina-inv-movements-tbody" style="font-size: 13px;"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-financial" class="page-section fade-in">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2 style="font-weight: 800;">Panel Financiero</h2>
+                    <button class="glass" onclick="resetMedinaFinances()" style="padding: 10px 20px; border-radius: 12px; background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger); font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-sync-alt"></i> Reiniciar Mes
+                    </button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="glass-card">
+                        <span class="stat-label">Ingresos Mensuales</span>
+                        <span class="stat-value" id="medina-total-ingresos">$0</span>
+                        <span style="font-size: 12px; color: var(--success);">Actualizado automáticamente</span>
+                    </div>
+                    <div class="glass-card">
+                        <span class="stat-label">Egresos Mensuales (Gastos)</span>
+                        <span class="stat-value" id="medina-total-gastos">$0</span>
+                        <span style="font-size: 12px; color: var(--danger);">Gestionados este mes</span>
+                    </div>
+                    <div class="glass-card">
+                        <span class="stat-label">Balance Neto</span>
+                        <span class="stat-value" id="medina-balance-neto">$0</span>
+                        <span id="medina-balance-status" style="font-size: 12px;">Saldo del periodo</span>
+                    </div>
+                </div>
+
+                <!-- Ingresos y Egresos Forms -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 20px; color: var(--success);">+ Registrar Ingreso</h3>
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <input type="text" id="m-i-concepto" placeholder="Concepto de Ingreso" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none;">
+                            <div style="display: flex; gap: 10px;">
+                                <input type="number" id="m-i-cantidad" placeholder="Monto ($)" class="glass" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none;">
+                                <input type="date" id="m-i-fecha" class="glass" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none;">
+                            </div>
+                            <button onclick="saveMedinaIngreso()" style="width: 100%; padding: 12px; border-radius: 12px; background: var(--success); color: white; border: none; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-plus-circle"></i> Guardar Ingreso
+                            </button>
+                        </div>
+                    </div>
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 20px; color: var(--danger);">- Registrar Egreso</h3>
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <input type="text" id="m-g-concepto" placeholder="Concepto de Gasto" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none;">
+                            <input type="text" id="m-g-motivo" placeholder="Motivo/Detalle" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none;">
+                            <div style="display: flex; gap: 10px;">
+                                <input type="number" id="m-g-cantidad" placeholder="Monto ($)" class="glass" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none;">
+                                <input type="date" id="m-g-fecha" class="glass" style="flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none;">
+                            </div>
+                            <button onclick="saveMedinaGasto()" style="width: 100%; padding: 12px; border-radius: 12px; background: var(--danger); color: white; border: none; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-minus-circle"></i> Guardar Gasto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Tables -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px;">
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 20px;">Historial de Ingresos</h3>
+                        <div style="overflow-x: auto; max-height: 400px;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr style="color: var(--text-secondary); font-size: 11px; text-transform: uppercase;">
+                                        <th style="padding: 12px 0;">Fecha</th>
+                                        <th>Concepto</th>
+                                        <th>Monto</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="medina-ingresos-tbody" style="font-size: 13px;"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 20px;">Historial de Egresos</h3>
+                        <div style="overflow-x: auto; max-height: 400px;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr style="color: var(--text-secondary); font-size: 11px; text-transform: uppercase;">
+                                        <th style="padding: 12px 0;">Fecha</th>
+                                        <th>Concepto</th>
+                                        <th>Monto</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="medina-gastos-tbody" style="font-size: 13px;"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-schedule" class="page-section fade-in">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div>
+                        <h2 style="font-weight: 800;">Agenda de Hemodiálisis</h2>
+                        <p style="color: var(--text-secondary); font-size: 14px;">Control de máquinas y turnos semanales</p>
+                    </div>
+                    <div style="display: flex; gap: 20px;">
+                        <div class="glass-card" style="padding: 10px 20px; display: flex; flex-direction: column; align-items: center;">
+                            <span style="font-size: 11px; color: var(--text-secondary);">PACIENTES</span>
+                            <span id="medina-count-patients" style="font-size: 18px; font-weight: 800;">0</span>
+                        </div>
+                        <div class="glass-card" style="padding: 10px 20px; display: flex; flex-direction: column; align-items: center;">
+                            <span style="font-size: 11px; color: var(--text-secondary);">LIBRES</span>
+                            <span id="medina-count-available" style="font-size: 18px; font-weight: 800;">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card" id="medinaAgendaContainer" style="padding: 0; overflow: hidden; height: calc(100vh - 250px);"></div>
+            </section>
+
+            <!-- Attendance Section -->
+            <section id="page-attendance" class="page-section fade-in">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div>
+                        <h2 style="font-weight: 800;">Control de Asistencia</h2>
+                        <p style="color: var(--text-secondary); font-size: 14px;">Registro biométrico de entrada y salida del personal</p>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 24px;">
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 20px;">Registrar Asistencia</h3>
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <input type="text" id="att-staff-name" placeholder="Nombre Completo" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none;">
+                            <select id="att-type" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                                <option value="Entrada">Entrada</option>
+                                <option value="Salida">Salida</option>
+                            </select>
+                            
+                            <!-- Camera Preview -->
+                            <div id="camera-container" class="glass" style="width: 100%; aspect-ratio: 4/3; border-radius: 12px; overflow: hidden; position: relative; background: #000; border: 1px solid var(--border);">
+                                <video id="att-video" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+                                <div id="camera-overlay" style="position: absolute; top: 10px; left: 10px; padding: 4px 10px; background: var(--primary); color: white; border-radius: 6px; font-size: 10px;">CÁMARA LISTA</div>
+                                <button onclick="initMedinaCamera()" style="position: absolute; top: 10px; right: 10px; padding: 6px 12px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 10px; cursor: pointer; font-weight: 600;">
+                                    <i class="fas fa-sync"></i> ACTIVAR CÁMARA
+                                </button>
+                            </div>
+                            <canvas id="att-canvas" style="display: none;"></canvas>
+
+                            <button onclick="registerMedinaAttendance()" style="width: 100%; padding: 12px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-camera"></i> Registrar y Tomar Foto
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 20px;">Bitácora de Hoy</h3>
+                        <div style="overflow-x: auto; max-height: 500px;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr style="color: var(--text-secondary); font-size: 11px; text-transform: uppercase;">
+                                        <th style="padding: 12px 0;">Foto</th>
+                                        <th>Nombre</th>
+                                        <th>Tipo</th>
+                                        <th>Hora</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="medina-attendance-tbody" style="font-size: 13px;"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Payroll Section -->
+            <section id="page-payroll" class="page-section fade-in">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div>
+                        <h2 style="font-weight: 800;">Gestión de Nómina</h2>
+                        <p style="color: var(--text-secondary); font-size: 14px;">Administración de salarios y compensaciones del personal</p>
+                    </div>
+                    <button class="glass" id="btn-add-payroll" onclick="addMedinaPayrollEmployee()" style="padding: 10px 20px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-plus"></i> Agregar Personal
+                    </button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 300px 1fr; gap: 24px; min-height: 500px;">
+                    <!-- Employee List -->
+                    <div class="glass-card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="padding: 20px; border-bottom: 1px solid var(--border);">
+                            <h4 style="font-weight: 700;">Personal (<span id="payroll-count">0</span>/10)</h4>
+                        </div>
+                        <div id="payroll-list" style="flex: 1; overflow-y: auto;">
+                            <!-- List of employees -->
+                        </div>
+                    </div>
+
+                    <!-- Breakdown Detail -->
+                    <div id="payroll-detail-container" class="glass-card" style="display: none; flex-direction: column; gap: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 id="p-det-name" style="font-weight: 800; color: var(--primary);">Nombre del Empleado</h3>
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="downloadMedinaPayrollPDF()" style="background: rgba(0,102,255,0.1); border: 1px solid var(--primary); color: var(--primary); padding: 8px 15px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </button>
+                                <button onclick="deleteMedinaPayrollEmployee()" style="background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 14px;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Period and Date -->
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                            <div class="glass" style="padding: 12px 15px; border-radius: 12px;">
+                                <label style="font-size: 10px; color: var(--text-secondary); display: block; margin-bottom: 5px; font-weight: 700; text-transform: uppercase;">Periodo de Nómina (ej. Quincena 1-15)</label>
+                                <input type="text" id="p-det-periodo" class="glass" placeholder="Quincena del 1-15 de Mayo" style="width: 100%; border: none; background: transparent; font-weight: 600; outline: none; border-bottom: 1px solid var(--border);">
+                            </div>
+                            <div class="glass" style="padding: 12px 15px; border-radius: 12px;">
+                                <label style="font-size: 10px; color: var(--text-secondary); display: block; margin-bottom: 5px; font-weight: 700; text-transform: uppercase;">Fecha de Pago</label>
+                                <input type="date" id="p-det-fecha-pago" class="glass" style="width: 100%; border: none; background: transparent; font-weight: 600; outline: none; border-bottom: 1px solid var(--border);">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                            <div class="glass" style="padding: 20px; border-radius: 16px;">
+                                <label style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Salario Quincenal</label>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                                    <span style="font-size: 16px; font-weight: 700; color: var(--success);">$</span>
+                                    <input type="number" id="p-det-quincena" oninput="updatePayrollCalculations()" class="glass" style="border: none; background: transparent; font-size: 20px; font-weight: 800; width: 100%; color: var(--text-primary); outline: none;">
+                                </div>
+                            </div>
+                            <div class="glass" style="padding: 20px; border-radius: 16px; background: rgba(0,0,0,0.02);">
+                                <label style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Diario (Auto)</label>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                                    <span style="font-size: 16px; font-weight: 700; opacity: 0.5;">$</span>
+                                    <input type="text" id="p-det-diario" readonly class="glass" style="border: none; background: transparent; font-size: 20px; font-weight: 800; width: 100%; outline: none; cursor: default;">
+                                </div>
+                            </div>
+                            <div class="glass" style="padding: 20px; border-radius: 16px; background: rgba(0,0,0,0.02);">
+                                <label style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700;">Hora (Auto)</label>
+                                <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                                    <span style="font-size: 16px; font-weight: 700; opacity: 0.5;">$</span>
+                                    <input type="text" id="p-det-hora" readonly class="glass" style="border: none; background: transparent; font-size: 20px; font-weight: 800; width: 100%; outline: none; cursor: default;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                            <div class="glass" style="padding: 12px; border-radius: 16px;">
+                                <label style="font-size: 10px; color: var(--text-secondary); display: block; margin-bottom: 5px; font-weight: 700;">Faltas (Días)</label>
+                                <input type="number" id="p-det-faltas" oninput="updatePayrollCalculations()" class="glass" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border);">
+                                <small style="display: block; margin-top: 5px; color: var(--danger); font-size: 10px; font-weight: 600;">Desc: -$<span id="p-det-faltas-desc">0</span></small>
+                            </div>
+                            <div class="glass" style="padding: 12px; border-radius: 16px;">
+                                <label style="font-size: 10px; color: var(--text-secondary); display: block; margin-bottom: 5px; font-weight: 700;">Desc. Horas</label>
+                                <input type="number" id="p-det-h-desc" oninput="updatePayrollCalculations()" class="glass" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border);">
+                                <small style="display: block; margin-top: 5px; color: var(--danger); font-size: 10px; font-weight: 600;">Desc: -$<span id="p-det-h-desc-monto">0</span></small>
+                            </div>
+                            <div class="glass" style="padding: 12px; border-radius: 16px;">
+                                <label style="font-size: 10px; color: var(--text-secondary); display: block; margin-bottom: 5px; font-weight: 700;">Extras ($)</label>
+                                <input type="number" id="p-det-extras" oninput="updatePayrollCalculations()" class="glass" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border);">
+                            </div>
+                            <div class="glass" style="padding: 12px; border-radius: 16px;">
+                                <label style="font-size: 10px; color: var(--text-secondary); display: block; margin-bottom: 5px; font-weight: 700;">Festivos ($)</label>
+                                <input type="number" id="p-det-festivos" oninput="updatePayrollCalculations()" class="glass" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border);">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="glass" style="padding: 12px; border-radius: 16px;">
+                                <label style="font-size: 10px; color: var(--text-secondary); display: block; margin-bottom: 5px; font-weight: 700;">Otros Descuentos ($)</label>
+                                <input type="number" id="p-det-otros" oninput="updatePayrollCalculations()" class="glass" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border);">
+                            </div>
+                            <div class="glass" style="padding: 12px; border-radius: 16px;">
+                                <label style="font-size: 10px; color: var(--text-secondary); display: block; margin-bottom: 5px; font-weight: 700;">Concepto del Descuento</label>
+                                <input type="text" id="p-det-otros-concepto" placeholder="Ej: Préstamo, Uniforme..." class="glass" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border);">
+                            </div>
+                        </div>
+
+                        <div class="glass" style="padding: 15px; border-radius: 16px; margin-top: 10px;">
+                            <label style="font-size: 11px; color: var(--text-secondary); display: block; margin-bottom: 5px; font-weight: 700;">Impuestos (%)</label>
+                            <input type="number" id="p-det-impuestos" oninput="updatePayrollCalculations()" class="glass" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
+                            <small style="display: block; margin-top: 5px; color: var(--danger); font-weight: 600;">Retención: -$<span id="p-det-impuestos-desc">0</span></small>
+                        </div>
+
+                        <div class="glass" style="margin-top: auto; padding: 25px; border-radius: 20px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4 style="text-transform: uppercase; font-size: 12px; opacity: 0.8; font-weight: 700; letter-spacing: 1px;">Total Neto a Pagar</h4>
+                                <span style="font-size: 36px; font-weight: 900;">$<span id="p-det-total">0</span></span>
+                            </div>
+                            <button onclick="saveMedinaPayrollData()" style="padding: 15px 30px; border-radius: 15px; background: white; color: var(--primary); border: none; font-weight: 800; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.1);">
+                                <i class="fas fa-save"></i> Guardar Nómina
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Placeholder if no one selected -->
+                    <div id="payroll-placeholder" class="glass-card" style="display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 15px; color: var(--text-secondary); opacity: 0.6;">
+                        <i class="fas fa-users" style="font-size: 48px;"></i>
+                        <p>Seleccione un empleado para ver el desglose</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-security" class="page-section fade-in">
+                <h2 style="margin-bottom: 24px; font-weight: 800;">Seguridad y Acceso</h2>
+                <div class="glass-card" style="max-width: 500px;">
+                    <h3>Control de Acceso Staff</h3>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">Permisos de administradores.</p>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <div class="glass" style="padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <p style="font-weight: 600;">Dr. Abraham Medina</p>
+                                <p style="font-size: 12px; color: var(--text-secondary);">Administrador Senior</p>
+                            </div>
+                            <span style="background: var(--primary); color: white; padding: 4px 10px; border-radius: 8px; font-size: 11px;">FULL ACCESS</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <footer style="margin-top: auto; padding-top: 40px; text-align: center; color: var(--text-secondary); font-size: 12px; padding-bottom: 20px;">
+                <p>&copy; 2026 Clínica Medina | Sistema de Gestión Hospitalaria</p>
+            </footer>
+        </main>
+
+        <!-- Agenda Modal -->
+        <div id="medinaAgendaModal" class="modal-overlay" style="display: none;">
+            <div class="glass-card modal-content" style="width: 450px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h3 id="medina-apm-title">Detalles del Turno</h3>
+                    <i class="fas fa-times" onclick="closeMedinaAgendaModal()" style="cursor: pointer; opacity: 0.6;"></i>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <input type="hidden" id="m-apm-day">
+                    <input type="hidden" id="m-apm-time">
+                    <input type="hidden" id="m-apm-machine">
+                    <input type="text" id="m-apm-name" placeholder="Nombre completo" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none;">
+                    <div style="display: flex; gap: 10px;">
+                        <select id="m-apm-type" class="glass" style="flex:1; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                            <option value="fijo">Fijo</option>
+                            <option value="ocasion">Ocasión</option>
+                        </select>
+                        <select id="m-apm-status" class="glass" style="flex:1; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                            <option value="confirmado">Confirmado</option>
+                            <option value="en-sesion">En Sesión</option>
+                        </select>
+                    </div>
+                    <textarea id="m-apm-obs" placeholder="Observaciones..." class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border); min-height: 80px;"></textarea>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="m-apm-delete" onclick="deleteMedinaAgendaItem()" style="flex:1; padding: 12px; border-radius: 10px; border: 1px solid var(--danger); color: var(--danger); background: transparent;">Borrar</button>
+                        <button onclick="saveMedinaAgendaItem()" style="flex:2; padding: 12px; border-radius: 10px; background: var(--primary); color: white; border: none;">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Assistant and other modals -->
+        <div id="ai-assistant"><i class="fas fa-robot"></i></div>
+        <div id="ai-modal" class="glass" style="position: fixed; bottom: 100px; right: 32px; width: 350px; height: 500px; border-radius: 24px; display: none; z-index: 1001; overflow: hidden; box-shadow: var(--shadow-lg);">
+            <div style="padding: 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 600;">Medina AI Staff</span>
+                <i class="fas fa-times" id="close-ai" style="cursor: pointer;"></i>
+            </div>
+            <div id="ai-chat" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;"></div>
+        </div>
+    </div>
+
+    <!-- Patient Files Modal -->
+    <div id="patient-files-modal" class="modal-overlay" style="display: none;">
+        <div class="glass-card modal-content" style="width: 500px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 id="modal-patient-name">Expediente</h3>
+                <i class="fas fa-times" onclick="closeModal('patient-files-modal')" style="cursor: pointer;"></i>
+            </div>
+            <div id="files-list" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;"></div>
+            <input type="file" id="file-input" accept="application/pdf" style="display: none;">
+            <button class="glass" onclick="document.getElementById('file-input').click()" style="width: 100%; padding: 12px; border-radius: 12px; background: var(--primary); color: white; border: none;">Subir PDF</button>
+        </div>
+    </div>
+
+    <!-- Add Patient Modal -->
+    <div id="add-patient-modal" class="modal-overlay" style="display: none;">
+        <div class="glass-card modal-content" style="width: 400px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Nuevo Paciente</h3>
+                <i class="fas fa-times" onclick="closeModal('add-patient-modal')" style="cursor: pointer;"></i>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="text" id="new-patient-name" placeholder="Nombre" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                <input type="number" id="new-patient-age" placeholder="Edad" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                <input type="text" id="new-patient-diagnosis" placeholder="Diagnóstico" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                <button onclick="saveNewPatient()" style="width: 100%; padding: 12px; border-radius: 12px; background: var(--primary); color: white; border: none;">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medina Product Modal -->
+    <div id="medina-product-modal" class="modal-overlay" style="display: none;">
+        <div class="glass-card modal-content" style="width: 450px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="font-weight: 700;">Nuevo Producto / Insumo</h3>
+                <i class="fas fa-times" onclick="closeModal('medina-product-modal')" style="cursor: pointer; opacity: 0.6;"></i>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="text" id="m-p-name" placeholder="Nombre del Producto" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border); outline: none;">
+                <select id="m-p-category" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                    <option value="Medicamento">Medicamento</option>
+                    <option value="Hemodiálisis">Insumo Hemodiálisis</option>
+                    <option value="General">General</option>
+                </select>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="m-p-lote" placeholder="Lote" class="glass" style="flex:1; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                    <input type="text" id="m-p-gramaje" placeholder="Gramaje / ML" class="glass" style="flex:1; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 11px; color: var(--text-secondary);">Fecha de Caducidad</label>
+                    <input type="date" id="m-p-expiry" class="glass" style="width:100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                </div>
+                <input type="number" id="m-p-stock" placeholder="Stock Inicial" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                <button onclick="saveMedinaProduct()" style="width: 100%; padding: 12px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: 600;">
+                    <i class="fas fa-save"></i> Guardar Producto
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medina Movement Modal -->
+    <div id="medina-inv-movement-modal" class="modal-overlay" style="display: none;">
+        <div class="glass-card modal-content" style="width: 400px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="font-weight: 700;">Registrar Movimiento</h3>
+                <i class="fas fa-times" onclick="closeModal('medina-inv-movement-modal')" style="cursor: pointer; opacity: 0.6;"></i>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <div class="form-group">
+                    <label style="font-size: 11px; color: var(--text-secondary);">Seleccionar Producto</label>
+                    <select id="m-mov-product" class="glass" style="width:100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);"></select>
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 11px; color: var(--text-secondary);">Tipo de Movimiento</label>
+                    <select id="m-mov-type" class="glass" style="width:100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                        <option value="entrada">Entrada (+)</option>
+                        <option value="salida">Salida (-)</option>
+                    </select>
+                </div>
+                <input type="number" id="m-mov-qty" placeholder="Cantidad" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                <input type="text" id="m-mov-reason" placeholder="Motivo (Ej: Compra, Sesión, Caducado)" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                <button onclick="saveMedinaInvMovement()" style="width: 100%; padding: 12px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: 600;">
+                    <i class="fas fa-check-circle"></i> Confirmar Movimiento
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
