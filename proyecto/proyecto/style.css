@@ -264,7 +264,7 @@ header {
     animation: fadeIn 0.3s ease-out;
 }
 
-/* Responsive */
+/* Responsive System */
 @media (max-width: 1200px) {
     :root {
         --sidebar-width: 240px;
@@ -287,6 +287,7 @@ header {
         padding: 12px;
     }
     header {
+        left: var(--sidebar-width);
         padding: 0 24px;
     }
 }
@@ -297,15 +298,20 @@ header {
         --header-height: 70px;
     }
     
+    #mobile-menu-toggle {
+        display: flex !important;
+    }
+
     aside {
         left: -100%;
         width: 280px !important;
-        transition: var(--transition);
-        box-shadow: 20px 0 50px rgba(0,0,0,0.1);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 2001;
     }
     
     aside.mobile-active {
         left: 0;
+        transform: translateX(0);
     }
     
     aside .brand h1, aside .brand p, aside .nav-item span {
@@ -319,116 +325,101 @@ header {
 
     main {
         margin-left: 0;
-        padding: 20px;
-        padding-top: calc(var(--header-height) + 20px);
+        padding: 16px;
+        padding-top: calc(var(--header-height) + 16px);
     }
 
     header {
         left: 0;
-        padding: 0 20px;
+        padding: 0 16px;
+    }
+
+    .header-search {
+        flex: 1;
     }
 
     .header-search input {
-        width: 150px !important;
+        width: 100% !important;
+        min-width: 100px;
     }
 
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
         gap: 16px;
     }
 
     .glass-card {
         padding: 16px;
+        border-radius: var(--radius-md);
     }
 
     h2 {
-        font-size: 20px;
+        font-size: 1.25rem;
     }
 
-    /* Stack grid layouts */
-    .page-section [style*="grid-template-columns"] {
+    /* Stack any manual grid layouts */
+    [style*="display: grid"], 
+    [style*="display:flex"] {
         grid-template-columns: 1fr !important;
-        gap: 16px !important;
+        flex-direction: column !important;
     }
 
-    /* Specific overrides for financial and payroll */
-    #page-financial > div[style*="grid-template-columns"],
-    #page-attendance > div[style*="grid-template-columns"],
-    #page-payroll > div[style*="grid-template-columns"] {
-        grid-template-columns: 1fr !important;
-    }
-
-    #page-payroll > div[style*="grid-template-columns"] {
-        min-height: auto !important;
-    }
-
-    #payroll-list {
-        max-height: 300px;
-    }
-
-    /* Tables */
-    .table-responsive {
+    /* Table Responsiveness */
+    .table-container {
         width: 100%;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        margin-bottom: 1rem;
+        margin: 10px 0;
+        border-radius: 12px;
     }
 
     table {
-        min-width: 600px;
+        min-width: 700px; /* Ensure tables don't squash */
     }
 
-    /* Buttons */
-    .header-actions {
-        gap: 12px !important;
-    }
-    
-    .user-profile p {
+    .user-profile div {
         display: none;
     }
 
-    .glass-card .stat-value {
-        font-size: 24px;
+    .header-actions {
+        gap: 12px !important;
+    }
+
+    #ai-assistant {
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
     }
 }
 
 @media (max-width: 480px) {
     .header-search {
-        display: none;
+        display: none; /* Hide search on very small screens to fit profile */
     }
     
     .brand h1 {
-        font-size: 18px;
+        font-size: 1.1rem;
     }
     
     .modal-content {
-        width: 95% !important;
-        margin: 10px;
+        padding: 20px;
     }
-    
-    .glass-card [style*="display: flex"] {
-        flex-direction: column;
-        align-items: stretch !important;
-    }
-    
+
     button {
         width: 100% !important;
+        justify-content: center;
     }
 }
 
-/* Table container helper */
+/* Global Responsive Helpers */
 .table-container {
-    overflow-x: auto;
-    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px;
 }
 
-@media (max-width: 768px) {
-    #mobile-menu-toggle {
-        display: flex !important;
-    }
-}
-p, h1, h2, h3, h4, span {
-    word-wrap: break-word;
+p, h1, h2, h3, h4, span, td {
+    word-break: break-word;
     overflow-wrap: break-word;
 }
 
