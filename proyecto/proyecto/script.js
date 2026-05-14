@@ -786,7 +786,16 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('🗑 Empleado eliminado');
     };
 
-    // Update navigation to handle payroll
+    // Mobile Menu Toggle
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const aside = document.querySelector('aside');
+    if (mobileMenuToggle) {
+        mobileMenuToggle.addEventListener('click', () => {
+            aside.classList.toggle('mobile-active');
+        });
+    }
+
+    // Update navigation to handle payroll and mobile behavior
     const navItems = document.querySelectorAll('.nav-item[data-page]');
     const pages = document.querySelectorAll('.page-section');
 
@@ -802,6 +811,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (page.id === pageId) page.classList.add('active');
             });
 
+            // Close mobile menu after navigation
+            if (window.innerWidth <= 768) {
+                aside.classList.remove('mobile-active');
+            }
+
             if (pageName === 'attendance') {
                 initMedinaCamera();
                 renderMedinaAttendance();
@@ -813,9 +827,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (pageName === 'memberships') renderMemberships();
             if (pageName === 'specialists') renderSpecialists();
             if (pageName === 'patients') renderPatients();
-            if (pageName === 'financial') { renderMedinaFinances(); }
+            if (pageName === 'financial') renderMedinaFinances();
             if (pageName === 'inventory') renderMedinaInventory();
-            if (pageName === 'schedule') renderMedinaAgenda();
         });
     });
 
@@ -823,7 +836,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPatients();
     renderMemberships();
     renderMedinaFinances();
-    renderMedinaAgenda();
     renderMedinaInventory();
     renderMedinaAttendance();
     renderMedinaPayroll();

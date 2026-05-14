@@ -265,20 +265,171 @@ header {
 }
 
 /* Responsive */
+@media (max-width: 1200px) {
+    :root {
+        --sidebar-width: 240px;
+    }
+}
+
 @media (max-width: 1024px) {
+    :root {
+        --sidebar-width: 80px;
+    }
     aside {
-        width: 80px;
         padding: 32px 10px;
+        align-items: center;
     }
     aside .brand h1, aside .brand p, aside .nav-item span {
         display: none;
     }
-    main {
-        margin-left: 80px;
+    aside .nav-item {
+        justify-content: center;
+        padding: 12px;
     }
     header {
-        left: 80px;
+        padding: 0 24px;
     }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --sidebar-width: 0px;
+        --header-height: 70px;
+    }
+    
+    aside {
+        left: -100%;
+        width: 280px !important;
+        transition: var(--transition);
+        box-shadow: 20px 0 50px rgba(0,0,0,0.1);
+    }
+    
+    aside.mobile-active {
+        left: 0;
+    }
+    
+    aside .brand h1, aside .brand p, aside .nav-item span {
+        display: block;
+    }
+    
+    aside .nav-item {
+        justify-content: flex-start;
+        padding: 12px 20px;
+    }
+
+    main {
+        margin-left: 0;
+        padding: 20px;
+        padding-top: calc(var(--header-height) + 20px);
+    }
+
+    header {
+        left: 0;
+        padding: 0 20px;
+    }
+
+    .header-search input {
+        width: 150px !important;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .glass-card {
+        padding: 16px;
+    }
+
+    h2 {
+        font-size: 20px;
+    }
+
+    /* Stack grid layouts */
+    .page-section [style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    /* Specific overrides for financial and payroll */
+    #page-financial > div[style*="grid-template-columns"],
+    #page-attendance > div[style*="grid-template-columns"],
+    #page-payroll > div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    #page-payroll > div[style*="grid-template-columns"] {
+        min-height: auto !important;
+    }
+
+    #payroll-list {
+        max-height: 300px;
+    }
+
+    /* Tables */
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 1rem;
+    }
+
+    table {
+        min-width: 600px;
+    }
+
+    /* Buttons */
+    .header-actions {
+        gap: 12px !important;
+    }
+    
+    .user-profile p {
+        display: none;
+    }
+
+    .glass-card .stat-value {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-search {
+        display: none;
+    }
+    
+    .brand h1 {
+        font-size: 18px;
+    }
+    
+    .modal-content {
+        width: 95% !important;
+        margin: 10px;
+    }
+    
+    .glass-card [style*="display: flex"] {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    
+    button {
+        width: 100% !important;
+    }
+}
+
+/* Table container helper */
+.table-container {
+    overflow-x: auto;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    #mobile-menu-toggle {
+        display: flex !important;
+    }
+}
+p, h1, h2, h3, h4, span {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .payroll-item:hover {
