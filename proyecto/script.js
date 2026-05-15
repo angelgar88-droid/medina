@@ -1,4 +1,41 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Login System
+    const loginScreen = document.getElementById('login-screen');
+    const appScreen = document.getElementById('app');
+    const errorMsg = document.getElementById('login-error');
+
+    // Check if already logged in
+    if (localStorage.getItem('medinaLoggedIn') === 'true') {
+        loginScreen.style.display = 'none';
+        appScreen.style.display = 'flex';
+    }
+
+    window.handleLogin = function() {
+        const user = document.getElementById('login-username').value;
+        const pass = document.getElementById('login-password').value;
+
+        if (user === 'clinica' && pass === 'medina') {
+            localStorage.setItem('medinaLoggedIn', 'true');
+            loginScreen.style.display = 'none';
+            appScreen.style.display = 'flex';
+            errorMsg.style.display = 'none';
+        } else {
+            errorMsg.style.display = 'block';
+        }
+    };
+
+    // Logout functionality
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('medinaLoggedIn');
+            appScreen.style.display = 'none';
+            loginScreen.style.display = 'flex';
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+        });
+    }
+
     // State Management
     let patients = JSON.parse(localStorage.getItem('patients')) || [
         { id: 1, name: 'Carlos Mendoza', age: 45, diagnosis: 'IRC Estadio 4', member: 'Gold', files: [] },
