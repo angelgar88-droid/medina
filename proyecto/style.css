@@ -264,148 +264,163 @@ header {
     animation: fadeIn 0.3s ease-out;
 }
 
-/* Responsive */
+/* Responsive System */
+@media (max-width: 1200px) {
+    :root {
+        --sidebar-width: 240px;
+    }
+}
+
 @media (max-width: 1024px) {
+    :root {
+        --sidebar-width: 80px;
+    }
     aside {
-        width: 80px;
         padding: 32px 10px;
+        align-items: center;
     }
     aside .brand h1, aside .brand p, aside .nav-item span {
         display: none;
     }
-    main {
-        margin-left: 80px;
+    aside .nav-item {
+        justify-content: center;
+        padding: 12px;
     }
     header {
-        left: 80px;
+        left: var(--sidebar-width);
+        padding: 0 24px;
     }
 }
 
-/* Agenda Grid Styling */
-#medinaAgendaContainer {
-    background: transparent;
-    display: flex;
-    flex-direction: column;
+@media (max-width: 768px) {
+    :root {
+        --sidebar-width: 0px;
+        --header-height: 70px;
+    }
+    
+    #mobile-menu-toggle {
+        display: flex !important;
+    }
+
+    aside {
+        left: -100%;
+        width: 280px !important;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 2001;
+    }
+    
+    aside.mobile-active {
+        left: 0;
+        transform: translateX(0);
+    }
+    
+    aside .brand h1, aside .brand p, aside .nav-item span {
+        display: block;
+    }
+    
+    aside .nav-item {
+        justify-content: flex-start;
+        padding: 12px 20px;
+    }
+
+    main {
+        margin-left: 0;
+        padding: 16px;
+        padding-top: calc(var(--header-height) + 16px);
+    }
+
+    header {
+        left: 0;
+        padding: 0 16px;
+    }
+
+    .header-search {
+        flex: 1;
+    }
+
+    .header-search input {
+        width: 100% !important;
+        min-width: 100px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px;
+    }
+
+    .glass-card {
+        padding: 16px;
+        border-radius: var(--radius-md);
+    }
+
+    h2 {
+        font-size: 1.25rem;
+    }
+
+    /* Stack any manual grid layouts */
+    [style*="display: grid"], 
+    [style*="display:flex"] {
+        grid-template-columns: 1fr !important;
+        flex-direction: column !important;
+    }
+
+    /* Table Responsiveness */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 10px 0;
+        border-radius: 12px;
+    }
+
+    table {
+        min-width: 700px; /* Ensure tables don't squash */
+    }
+
+    .user-profile div {
+        display: none;
+    }
+
+    .header-actions {
+        gap: 12px !important;
+    }
+
+    #ai-assistant {
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+    }
 }
 
-.medina-agenda-grid {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+@media (max-width: 480px) {
+    .header-search {
+        display: none; /* Hide search on very small screens to fit profile */
+    }
+    
+    .brand h1 {
+        font-size: 1.1rem;
+    }
+    
+    .modal-content {
+        padding: 20px;
+    }
+
+    button {
+        width: 100% !important;
+        justify-content: center;
+    }
 }
 
-.medina-agenda-header {
-    display: grid;
-    grid-template-columns: 100px repeat(6, 1fr);
-    background: rgba(255, 255, 255, 0.4);
-    border-bottom: 1px solid var(--border);
+/* Global Responsive Helpers */
+.table-container {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px;
 }
 
-.medina-agenda-row {
-    display: grid;
-    grid-template-columns: 100px repeat(6, 1fr);
-    border-bottom: 1px solid var(--border);
-    min-height: 150px;
-}
-
-.m-time-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.2);
-    font-weight: 800;
-    font-size: 14px;
-    color: var(--primary);
-}
-
-.m-day-col {
-    padding: 15px;
-    text-align: center;
-    font-weight: 700;
-    font-size: 12px;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-}
-
-.m-agenda-cell {
-    padding: 10px;
-    border-left: 1px solid var(--border);
-}
-
-.m-machine-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    height: 100%;
-}
-
-.m-machine-slot {
-    background: rgba(255, 255, 255, 0.3);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    transition: var(--transition);
-    min-height: 60px;
-    cursor: pointer;
-}
-
-.m-machine-slot:hover {
-    background: rgba(255, 255, 255, 0.6);
-    transform: translateY(-2px);
-}
-
-.m-machine-slot.empty {
-    border-style: dashed;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.6;
-}
-
-.m-machine-slot.empty:hover {
-    opacity: 1;
-    border-color: var(--primary);
-}
-
-.m-slot-label {
-    font-size: 9px;
-    font-weight: 800;
-    color: var(--text-secondary);
-    opacity: 0.5;
-}
-
-.m-patient-card {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.m-patient-name {
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.m-patient-status {
-    font-size: 9px;
-    padding: 2px 8px;
-    border-radius: 50px;
-    align-self: flex-start;
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
-.status-confirmado { background: rgba(16, 185, 129, 0.1); color: var(--success); }
-.status-en-camino { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-.status-en-sesion { background: rgba(0, 102, 255, 0.1); color: var(--primary); }
-
-.m-machine-slot.drag-over {
-    background: var(--primary-glow);
-    border-color: var(--primary);
+p, h1, h2, h3, h4, span, td {
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .payroll-item:hover {
