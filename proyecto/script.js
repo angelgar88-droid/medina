@@ -866,8 +866,152 @@ document.addEventListener('DOMContentLoaded', () => {
             if (pageName === 'patients') renderPatients();
             if (pageName === 'financial') renderMedinaFinances();
             if (pageName === 'inventory') renderMedinaInventory();
+            if (pageName === 'agenda') renderMedinaAgenda();
         });
     });
+
+    // --- AGENDA LOGIC ---
+    let medinaAgenda = {};
+    try {
+        const stored = localStorage.getItem('medinaAgenda');
+        if (stored && stored !== 'undefined') {
+            medinaAgenda = JSON.parse(stored);
+        }
+    } catch(e) {
+        console.error('Error parsing medinaAgenda from localStorage', e);
+        medinaAgenda = {};
+    }
+    let currentAgendaWeekStart = new Date();
+    currentAgendaWeekStart.setHours(0, 0, 0, 0);
+    const agDay = currentAgendaWeekStart.getDay();
+    const agDiff = currentAgendaWeekStart.getDate() - agDay + (agDay === 0 ? -6 : 1);
+    currentAgendaWeekStart.setDate(agDiff);
+
+    window.changeAgendaWeek = function(offset) {
+        currentAgendaWeekStart.setDate(currentAgendaWeekStart.getDate() + (offset * 7));
+        renderMedinaAgenda();
+    };
+
+    function formatDateForAgenda(d) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    window.renderMedinaAgenda = function() {
+        const grid = document.getElementById('agenda-grid');
+        if(!grid) return;
+        
+        try {
+            // Update Label
+            const endOfWeek = new Date(currentAgendaWeekStart);
+        endOfWeek.setDate(currentAgendaWeekStart.getDate() + 5); // Saturday
+        const options = { month: 'short', day: 'numeric' };
+        document.getElementById('agenda-week-label').textContent = 
+            `Del ${currentAgendaWeekStart.toLocaleDateString('es-ES', options)} al ${endOfWeek.toLocaleDateString('es-ES', options)}`;
+
+        let html = '<div class="agenda-grid-container">';
+        
+        // Header
+        html += `<div class="agenda-header-cell">Hora</div>`;
+        const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const datesThisWeek = [];
+        for(let i=0; i<6; i++) {
+            let d = new Date(currentAgendaWeekStart);
+            d.setDate(currentAgendaWeekStart.getDate() + i);
+            datesThisWeek.push(d);
+            html += `<div class="agenda-header-cell">${days[i]}<br><small style="font-weight: normal;">${d.getDate()}</small></div>`;
+        }
+        html += '</div>';
+
+        const shifts = ['07:00 am', '11:00 am', '15:00 pm'];
+        shifts.forEach(shift => {
+            html += '<div class="agenda-grid-container">';
+            html += `<div class="agenda-time-cell">${shift}</div>`;
+            
+            for(let d=0; d<6; d++) {
+                const dateStr = formatDateForAgenda(datesThisWeek[d]);
+                html += `<div class="agenda-day-col">`;
+                
+                if(!medinaAgenda[dateStr]) medinaAgenda[dateStr] = {};
+                if(!medinaAgenda[dateStr][shift]) medinaAgenda[dateStr][shift] = [null, null, null, null];
+                
+                for(let slot=0; slot<4; slot++) {
+                    const data = medinaAgenda[dateStr][shift][slot];
+                    if (data) {
+                        html += `<div class="agenda-slot ${data.type}" onclick="openAgendaModal('${dateStr}', '${shift}', ${slot})">${data.name}</div>`;
+                    } else {
+                        html += `<div class="agenda-slot" onclick="openAgendaModal('${dateStr}', '${shift}', ${slot})"><i class="fas fa-plus"></i></div>`;
+                    }
+                }
+                html += `</div>`;
+            }
+            html += '</div>';
+        });
+
+            grid.innerHTML = html;
+            localStorage.setItem('medinaAgenda', JSON.stringify(medinaAgenda));
+        } catch (error) {
+            grid.innerHTML = `<div style="padding: 20px; color: red;">Error: ${error.message}</div>`;
+            console.error(error);
+        }
+    };
+
+    window.openAgendaModal = function(dateStr, time, slot) {
+        document.getElementById('agenda-date').value = dateStr;
+        document.getElementById('agenda-time').value = time;
+        document.getElementById('agenda-slot').value = slot;
+        
+        const data = medinaAgenda[dateStr] && medinaAgenda[dateStr][time] && medinaAgenda[dateStr][time][slot];
+        if (data) {
+            document.getElementById('agenda-patient-name').value = data.name;
+            document.getElementById('agenda-patient-type').value = data.type;
+        } else {
+            document.getElementById('agenda-patient-name').value = '';
+            document.getElementById('agenda-patient-type').value = 'fijo';
+        }
+        
+        document.getElementById('agenda-modal').style.display = 'flex';
+    };
+
+    window.saveAgendaSlot = function() {
+        const dateStr = document.getElementById('agenda-date').value;
+        const time = document.getElementById('agenda-time').value;
+        const slot = parseInt(document.getElementById('agenda-slot').value);
+        const name = document.getElementById('agenda-patient-name').value.trim();
+        const type = document.getElementById('agenda-patient-type').value;
+
+        if (!name) {
+            showToast('⚠️ Ingresa el nombre del paciente');
+            return;
+        }
+
+        if(!medinaAgenda[dateStr]) medinaAgenda[dateStr] = {};
+        if(!medinaAgenda[dateStr][time]) medinaAgenda[dateStr][time] = [null, null, null, null];
+        
+        medinaAgenda[dateStr][time][slot] = { name, type };
+        localStorage.setItem('medinaAgenda', JSON.stringify(medinaAgenda));
+        
+        closeModal('agenda-modal');
+        renderMedinaAgenda();
+        showToast('✅ Turno guardado');
+    };
+
+    window.deleteAgendaSlot = function() {
+        const dateStr = document.getElementById('agenda-date').value;
+        const time = document.getElementById('agenda-time').value;
+        const slot = parseInt(document.getElementById('agenda-slot').value);
+
+        if(medinaAgenda[dateStr] && medinaAgenda[dateStr][time]) {
+            medinaAgenda[dateStr][time][slot] = null;
+            localStorage.setItem('medinaAgenda', JSON.stringify(medinaAgenda));
+        }
+        
+        closeModal('agenda-modal');
+        renderMedinaAgenda();
+        showToast('🗑 Turno liberado');
+    };
 
     // Initial load
     renderPatients();
@@ -876,4 +1020,5 @@ document.addEventListener('DOMContentLoaded', () => {
     renderMedinaInventory();
     renderMedinaAttendance();
     renderMedinaPayroll();
+    renderMedinaAgenda();
 });

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Salud Puebla | Clínica Medina OS</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=3.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,9 +14,9 @@
     <!-- Login Screen -->
     <div id="login-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: var(--background); display: flex; align-items: center; justify-content: center; z-index: 9999;">
         <div class="glass-card" style="width: min(400px, 90vw); padding: 40px; text-align: center; display: flex; flex-direction: column; gap: 24px;">
-            <div class="brand" style="margin-bottom: 10px;">
-                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                    <i class="fas fa-hospital" style="font-size: 40px; color: white;"></i>
+            <div class="brand" style="margin-bottom: 10px; text-align: center; align-items: center;">
+                <div style="width: 120px; height: 120px; margin: 0 auto 20px; border-radius: 24px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: white; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
+                    <img src="logo.jpg" alt="Clínica Medina Logo" style="width: 100%; height: 100%; object-fit: contain; padding: 5px;">
                 </div>
                 <h1 style="font-size: 28px;">CLÍNICA MEDINA</h1>
                 <p>Salud Puebla</p>
@@ -48,7 +48,8 @@
     <div id="app" style="display: none;">
         <!-- Sidebar Navigation -->
         <aside class="glass">
-            <div class="brand">
+            <div class="brand" style="align-items: center; text-align: center;">
+                <img src="logo.jpg" alt="Clínica Medina Logo" style="width: 70px; height: 70px; object-fit: contain; background: white; border-radius: 16px; padding: 5px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                 <h1>CLÍNICA MEDINA</h1>
                 <p>Salud Puebla</p>
             </div>
@@ -61,6 +62,10 @@
                 <a class="nav-item" data-page="memberships">
                     <i class="fas fa-id-card"></i>
                     <span>Membresías</span>
+                </a>
+                <a class="nav-item" data-page="agenda">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Agenda</span>
                 </a>
                 <a class="nav-item" data-page="patients">
                     <i class="fas fa-user-injured"></i>
@@ -132,7 +137,7 @@
             <!-- Dashboard Overview -->
             <section id="page-dashboard" class="page-section active fade-in">
                 <div class="glass-card" style="margin-bottom: 32px; padding: 0; overflow: hidden; height: 200px; position: relative;">
-                    <img src="/Users/Bi5M/.gemini/antigravity/brain/7ccee8db-44fe-4745-b122-daf04850807d/hospital_dashboard_hero_1778372550651.png" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;">
+                    <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2053&q=80" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;" alt="Corporate Clinic Banner">
                     <div style="position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px; background: linear-gradient(transparent, rgba(0,0,0,0.7)); color: white;">
                         <h2 style="font-weight: 800;">Bienvenido, Dr. Medina</h2>
                         <p style="font-size: 14px; opacity: 0.9;">Panel de Control | Salud Puebla & Clínica Medina</p>
@@ -236,6 +241,22 @@
                                 <!-- Members injected here -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="page-agenda" class="page-section fade-in">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 15px;">
+                    <h2 style="font-weight: 800;">Agenda de Hemodiálisis</h2>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button onclick="changeAgendaWeek(-1)" class="glass" style="padding: 10px; border-radius: 8px; border: none; cursor: pointer; color: var(--text-primary);"><i class="fas fa-chevron-left"></i></button>
+                        <span id="agenda-week-label" class="glass" style="font-weight: 700; padding: 10px 16px; border-radius: 8px;">Semana Actual</span>
+                        <button onclick="changeAgendaWeek(1)" class="glass" style="padding: 10px; border-radius: 8px; border: none; cursor: pointer; color: var(--text-primary);"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="glass-card" style="padding: 0; overflow-x: auto;">
+                    <div id="agenda-grid" style="min-width: 800px; border-radius: var(--radius-md); overflow: hidden;">
+                        <!-- Renderizado vía script.js -->
                     </div>
                 </div>
             </section>
@@ -730,7 +751,41 @@
             </div>
         </div>
     </div>
+    <!-- Agenda Modal -->
+    <div id="agenda-modal" class="modal-overlay" style="display: none;">
+        <div class="glass-card modal-content" style="width: min(400px, 95vw);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="font-weight: 700;">Editar Turno</h3>
+                <i class="fas fa-times" onclick="closeModal('agenda-modal')" style="cursor: pointer; opacity: 0.6;"></i>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="hidden" id="agenda-date">
+                <input type="hidden" id="agenda-time">
+                <input type="hidden" id="agenda-slot">
+                
+                <input type="text" id="agenda-patient-name" placeholder="Nombre del Paciente" class="glass" style="padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                
+                <div class="form-group">
+                    <label style="font-size: 11px; color: var(--text-secondary);">Tipo de Paciente</label>
+                    <select id="agenda-patient-type" class="glass" style="width:100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);">
+                        <option value="fijo">Fijo (Azul)</option>
+                        <option value="unica">Única ocasión (Naranja)</option>
+                    </select>
+                </div>
 
-    <script src="script.js"></script>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="saveAgendaSlot()" style="flex: 1; padding: 12px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <button onclick="deleteAgendaSlot()" style="flex: 1; padding: 12px; border-radius: 12px; background: var(--danger); color: white; border: none; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-trash"></i> Liberar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="script.js?v=2.0"></script>
 </body>
 </html>
