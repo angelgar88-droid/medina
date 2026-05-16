@@ -357,11 +357,15 @@ header {
         font-size: 1.25rem;
     }
 
-    /* Stack any manual grid layouts */
-    [style*="display: grid"], 
-    [style*="display:flex"] {
+    /* Target specific grids to stack on mobile */
+    .stats-grid, .features-grid, .services-grid {
         grid-template-columns: 1fr !important;
+    }
+    
+    /* Ensure modal actions stack properly */
+    .modal-content [style*="display: flex"] {
         flex-direction: column !important;
+        gap: 15px !important;
     }
 
     /* Table Responsiveness */
@@ -398,6 +402,27 @@ header {
         display: none; /* Hide search on very small screens to fit profile */
     }
     
+    .header-actions button {
+        padding: 8px !important;
+    }
+
+    h2 {
+        font-size: 1.1rem;
+    }
+
+    .agenda-header-cell {
+        font-size: 9px;
+        padding: 10px 5px;
+    }
+    .agenda-header-cell small {
+        font-size: 16px;
+    }
+    .agenda-slot {
+        font-size: 10px;
+        padding: 8px 4px;
+        min-height: 40px;
+    }
+
     .brand h1 {
         font-size: 1.1rem;
     }
