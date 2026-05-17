@@ -1,3 +1,10 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js'
+
+const supabaseUrl = 'https://fpjspvbmgqojbqemnxuw.supabase.co'
+const supabaseKey = 'sb_publishable_pbW1NAGZsVpqV66aVmJpig_7Dfelmca'
+
+const supabase = createClient(supabaseUrl, supabaseKey)
+
 document.addEventListener('DOMContentLoaded', () => {
     // Login System
     const loginScreen = document.getElementById('login-screen');
@@ -10,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         appScreen.style.display = 'flex';
     }
 
-    window.handleLogin = function() {
+    window.handleLogin = function () {
         const user = document.getElementById('login-username').value;
         const pass = document.getElementById('login-password').value;
 
@@ -37,13 +44,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // State Management
-    let patients = JSON.parse(localStorage.getItem('patients')) || [
-        { id: 1, name: 'Carlos Mendoza', age: 45, diagnosis: 'IRC Estadio 4', member: 'Gold', files: [] },
-        { id: 2, name: 'Lucia Ramirez', age: 32, diagnosis: 'Diabetes Tipo 2', member: 'Silver', files: [] },
-        { id: 3, name: 'Fernando Solis', age: 58, diagnosis: 'Hipertensión', member: 'Platinum', files: [] }
-    ];
-
+    let patients = [];
     let currentPatientId = null;
+
+    // Supabase Patients CRUD
+    async function fetchPatients() {
+        const { data, error } = await supabase
+            .from('pacientes')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching patients:', error);
+        } else {
+            patients = data;
+            renderPatients();
+        }
+    }
+
+    function subscribePatients() {
+        supabase
+            .channel('realtime-pacientes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'pacientes' }, payload => {
+                fetchPatients();
+            })
+            .subscribe();
+    }
 
     function saveState() {
         localStorage.setItem('patients', JSON.stringify(patients));
@@ -61,11 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Modal Helpers
-    window.openModal = function(id) {
+    window.openModal = function (id) {
         document.getElementById(id).style.display = 'flex';
     };
 
-    window.closeModal = function(id) {
+    window.closeModal = function (id) {
         document.getElementById(id).style.display = 'none';
     };
 
@@ -78,9 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Patients Logic
-    window.renderPatients = function() {
+    window.renderPatients = function () {
         const grid = document.getElementById('patients-list');
-        grid.innerHTML = patients.map(p => `
+        if (!grid) return;
+        grid.innerHTML = (patients || []).map(p => `
             <div class="glass-card" style="padding: 20px; display: flex; flex-direction: column; gap: 15px; cursor: pointer; position: relative;">
                 <div style="position: absolute; top: 15px; right: 15px; display: flex; gap: 10px;">
                     <i class="fas fa-trash" onclick="deletePatient(${p.id}); event.stopPropagation();" style="color: var(--danger); font-size: 14px; opacity: 0.6; cursor: pointer;"></i>
@@ -90,58 +117,63 @@ document.addEventListener('DOMContentLoaded', () => {
                         <i class="fas fa-user-injured" style="font-size: 20px;"></i>
                     </div>
                     <div>
-                        <h4 style="font-weight: 700;">${p.name}</h4>
-                        <p style="font-size: 12px; color: var(--text-secondary);">${p.age} años • ${p.diagnosis}</p>
+                        <h4 style="font-weight: 700;">${p.nombre}</h4>
+                        <p style="font-size: 12px; color: var(--text-secondary);">Tel: ${p.telefono || 'N/A'}</p>
+                        <p style="font-size: 11px; color: var(--text-secondary);">Fecha: ${p.fecha || 'N/A'}</p>
                     </div>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 15px;">
-                    <span style="font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase;">Membresía: ${p.member}</span>
-                    <span style="font-size: 11px; color: var(--text-secondary);"><i class="fas fa-file-pdf"></i> ${p.files.length} Docs</span>
+                    <span style="font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase;">ID: ${p.id}</span>
                 </div>
             </div>
         `).join('');
     };
 
-    window.saveNewPatient = function() {
-        const name = document.getElementById('new-patient-name').value;
-        const age = document.getElementById('new-patient-age').value;
-        const diagnosis = document.getElementById('new-patient-diagnosis').value;
-        const member = document.getElementById('new-patient-member').value;
+    window.saveNewPatient = async function () {
+        const nombre = document.getElementById('new-patient-name').value;
+        const telefono = document.getElementById('new-patient-phone').value;
+        const fecha = document.getElementById('new-patient-date').value;
 
-        if (!name || !age) return alert('Por favor llene los campos básicos');
+        if (!nombre || !telefono) return alert('Por favor llene nombre y teléfono');
 
-        const newPatient = {
-            id: Date.now(),
-            name,
-            age,
-            diagnosis,
-            member,
-            files: []
-        };
+        const { error } = await supabase
+            .from('pacientes')
+            .insert([{ nombre, telefono, fecha }]);
 
-        patients.push(newPatient);
-        saveState();
-        renderPatients();
-        closeModal('add-patient-modal');
-        
-        // Reset fields
-        document.getElementById('new-patient-name').value = '';
-        document.getElementById('new-patient-age').value = '';
-        document.getElementById('new-patient-diagnosis').value = '';
+        if (error) {
+            alert('Error al guardar: ' + error.message);
+        } else {
+            showToast('✅ Paciente guardado en Supabase');
+            closeModal('add-patient-modal');
+            // Reset fields
+            document.getElementById('new-patient-name').value = '';
+            document.getElementById('new-patient-phone').value = '';
+            document.getElementById('new-patient-date').value = '';
+            // renderPatients is handled by realtime subscription
+        }
     };
 
-    window.deletePatient = function(id) {
-        if (!confirm('¿Está seguro de eliminar este paciente?')) return;
-        patients = patients.filter(p => p.id !== id);
-        saveState();
-        renderPatients();
+    window.deletePatient = async function (id) {
+        if (!confirm('¿Seguro que desea eliminar este paciente?')) return;
+
+        const { error } = await supabase
+            .from('pacientes')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            alert('Error al eliminar: ' + error.message);
+        } else {
+            showToast('🗑️ Paciente eliminado');
+            // renderPatients is handled by realtime subscription
+        }
     };
 
-    window.openPatientExpediente = function(id) {
+    window.openPatientExpediente = function (id) {
         currentPatientId = Number(id);
         const patient = patients.find(p => p.id == currentPatientId);
         if (!patient) return console.error('Paciente no encontrado:', id);
-        document.getElementById('modal-patient-name').textContent = `Expediente: ${patient.name}`;
+        document.getElementById('modal-patient-name').textContent = `Expediente: ${patient.nombre}`;
         renderFilesList();
         openModal('patient-files-modal');
     };
@@ -150,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const patient = patients.find(p => p.id == currentPatientId);
         const container = document.getElementById('files-list');
         if (!patient || !container) return;
-        
+
         if (!patient.files || patient.files.length === 0) {
             container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No hay documentos cargados.</p>';
             return;
@@ -173,13 +205,13 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    document.getElementById('file-input').addEventListener('change', function(e) {
+    document.getElementById('file-input').addEventListener('change', function (e) {
         const file = e.target.files[0];
         if (!file) return;
         if (file.type !== 'application/pdf') return alert('Solo se permiten archivos PDF');
 
         const reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = function (event) {
             const base64Data = event.target.result;
             const patient = patients.find(p => p.id === currentPatientId);
             if (!patient) return;
@@ -195,13 +227,13 @@ document.addEventListener('DOMContentLoaded', () => {
             renderPatients(); // Update the doc count
             showToast('✅ Documento guardado correctamente');
         };
-        reader.onerror = function() {
+        reader.onerror = function () {
             alert('Error al leer el archivo. Intente con uno más pequeño.');
         };
         reader.readAsDataURL(file);
     });
 
-    window.deleteFile = function(index) {
+    window.deleteFile = function (index) {
         if (!confirm('¿Eliminar este documento?')) return;
         const patient = patients.find(p => p.id === currentPatientId);
         patient.files.splice(index, 1);
@@ -252,7 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let medinaGastos = JSON.parse(localStorage.getItem('medinaGastos')) || [];
     let medinaIngresos = JSON.parse(localStorage.getItem('medinaIngresos')) || [];
 
-    window.saveMedinaGasto = function() {
+    window.saveMedinaGasto = function () {
         const concepto = document.getElementById('m-g-concepto').value;
         const motivo = document.getElementById('m-g-motivo').value;
         const cantidad = parseFloat(document.getElementById('m-g-cantidad').value);
@@ -265,16 +297,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const newGasto = { id: Date.now(), concepto, motivo, cantidad, fecha };
         medinaGastos.unshift(newGasto);
         localStorage.setItem('medinaGastos', JSON.stringify(medinaGastos));
-        
+
         document.getElementById('m-g-concepto').value = '';
         document.getElementById('m-g-motivo').value = '';
         document.getElementById('m-g-cantidad').value = '';
-        
+
         renderMedinaFinances();
         showToast('✅ Gasto registrado');
     };
 
-    window.saveMedinaIngreso = function() {
+    window.saveMedinaIngreso = function () {
         const concepto = document.getElementById('m-i-concepto').value;
         const cantidad = parseFloat(document.getElementById('m-i-cantidad').value);
         const fecha = document.getElementById('m-i-fecha').value;
@@ -286,15 +318,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const newIngreso = { id: Date.now(), concepto, cantidad, fecha };
         medinaIngresos.unshift(newIngreso);
         localStorage.setItem('medinaIngresos', JSON.stringify(medinaIngresos));
-        
+
         document.getElementById('m-i-concepto').value = '';
         document.getElementById('m-i-cantidad').value = '';
-        
+
         renderMedinaFinances();
         showToast('✅ Ingreso registrado');
     };
 
-    window.renderMedinaFinances = function() {
+    window.renderMedinaFinances = function () {
         const gTbody = document.getElementById('medina-gastos-tbody');
         const iTbody = document.getElementById('medina-ingresos-tbody');
         if (!gTbody || !iTbody) return;
@@ -330,17 +362,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update Stats
         const balance = totalI - totalG;
-        if(document.getElementById('medina-total-ingresos')) document.getElementById('medina-total-ingresos').textContent = `$${totalI.toLocaleString()}`;
-        if(document.getElementById('medina-total-gastos')) document.getElementById('medina-total-gastos').textContent = `$${totalG.toLocaleString()}`;
-        
+        if (document.getElementById('medina-total-ingresos')) document.getElementById('medina-total-ingresos').textContent = `$${totalI.toLocaleString()}`;
+        if (document.getElementById('medina-total-gastos')) document.getElementById('medina-total-gastos').textContent = `$${totalG.toLocaleString()}`;
+
         const balanceEl = document.getElementById('medina-balance-neto');
-        if(balanceEl) {
+        if (balanceEl) {
             balanceEl.textContent = `$${balance.toLocaleString()}`;
             balanceEl.style.color = balance >= 0 ? 'var(--success)' : 'var(--danger)';
         }
     };
 
-    window.deleteMedinaGasto = function(id) {
+    window.deleteMedinaGasto = function (id) {
         const pass = prompt('🔐 Ingrese la contraseña de administrador para eliminar este registro:');
         if (pass !== 'medina2026') return showToast('❌ Contraseña incorrecta');
 
@@ -351,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('🗑 Gasto eliminado');
     };
 
-    window.deleteMedinaIngreso = function(id) {
+    window.deleteMedinaIngreso = function (id) {
         const pass = prompt('🔐 Ingrese la contraseña de administrador para eliminar este registro:');
         if (pass !== 'medina2026') return showToast('❌ Contraseña incorrecta');
 
@@ -362,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('🗑 Ingreso eliminado');
     };
 
-    window.resetMedinaFinances = function() {
+    window.resetMedinaFinances = function () {
         const pass = prompt('🔐 Ingrese la contraseña de administrador para REINICIAR TODO EL MES:');
         if (pass !== 'medina2026') return showToast('❌ Contraseña incorrecta');
 
@@ -384,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     let medinaInvMovements = JSON.parse(localStorage.getItem('medinaInvMovements')) || [];
 
-    window.renderMedinaInventory = function() {
+    window.renderMedinaInventory = function () {
         const tbody = document.getElementById('medina-inventory-tbody');
         const movTbody = document.getElementById('medina-inv-movements-tbody');
         const selectProd = document.getElementById('m-mov-product');
@@ -436,12 +468,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const critical = medinaInventory.filter(p => p.stock < 10).length;
         const movementsToday = medinaInvMovements.filter(m => m.date === new Date().toISOString().split('T')[0]).length;
 
-        if(document.getElementById('inv-total-products')) document.getElementById('inv-total-products').textContent = totalProds;
-        if(document.getElementById('inv-critical-stock')) document.getElementById('inv-critical-stock').textContent = critical;
-        if(document.getElementById('inv-movements-today')) document.getElementById('inv-movements-today').textContent = movementsToday;
+        if (document.getElementById('inv-total-products')) document.getElementById('inv-total-products').textContent = totalProds;
+        if (document.getElementById('inv-critical-stock')) document.getElementById('inv-critical-stock').textContent = critical;
+        if (document.getElementById('inv-movements-today')) document.getElementById('inv-movements-today').textContent = movementsToday;
     }
 
-    window.saveMedinaProduct = function() {
+    window.saveMedinaProduct = function () {
         const name = document.getElementById('m-p-name').value;
         const category = document.getElementById('m-p-category').value;
         const lote = document.getElementById('m-p-lote').value;
@@ -454,13 +486,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const newProd = { id: Date.now(), name, category, lote, gramaje, expiry, stock };
         medinaInventory.push(newProd);
         localStorage.setItem('medinaInventory', JSON.stringify(medinaInventory));
-        
+
         renderMedinaInventory();
         closeModal('medina-product-modal');
         showToast('✅ Producto registrado');
     };
 
-    window.saveMedinaInvMovement = function() {
+    window.saveMedinaInvMovement = function () {
         const prodId = parseInt(document.getElementById('m-mov-product').value);
         const type = document.getElementById('m-mov-type').value;
         const qty = parseInt(document.getElementById('m-mov-qty').value) || 0;
@@ -477,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update Stock
         product.stock += (type === 'entrada' ? qty : -qty);
-        
+
         // Record Movement
         const movement = {
             id: Date.now(),
@@ -498,7 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast(`✅ ${type.toUpperCase()} registrada`);
     };
 
-    window.deleteMedinaProduct = function(id) {
+    window.deleteMedinaProduct = function (id) {
         if (!confirm('¿Eliminar este producto del inventario?')) return;
         medinaInventory = medinaInventory.filter(p => p.id !== id);
         localStorage.setItem('medinaInventory', JSON.stringify(medinaInventory));
@@ -510,7 +542,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let medinaAttendance = JSON.parse(localStorage.getItem('medinaAttendance')) || [];
     let attStream = null;
 
-    window.initMedinaCamera = async function() {
+    window.initMedinaCamera = async function () {
         const video = document.getElementById('att-video');
         if (!video) return;
 
@@ -523,14 +555,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    window.stopMedinaCamera = function() {
+    window.stopMedinaCamera = function () {
         if (attStream) {
             attStream.getTracks().forEach(track => track.stop());
             attStream = null;
         }
     };
 
-    window.registerMedinaAttendance = function() {
+    window.registerMedinaAttendance = function () {
         const name = document.getElementById('att-staff-name').value;
         const type = document.getElementById('att-type').value;
         const video = document.getElementById('att-video');
@@ -556,13 +588,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         medinaAttendance.unshift(newRecord);
         localStorage.setItem('medinaAttendance', JSON.stringify(medinaAttendance));
-        
+
         document.getElementById('att-staff-name').value = '';
         renderMedinaAttendance();
         showToast(`✅ ${type} registrada con éxito`);
     };
 
-    window.renderMedinaAttendance = function() {
+    window.renderMedinaAttendance = function () {
         const tbody = document.getElementById('medina-attendance-tbody');
         if (!tbody) return;
 
@@ -581,7 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     };
 
-    window.deleteMedinaAttendance = function(id) {
+    window.deleteMedinaAttendance = function (id) {
         const pass = prompt('🔐 Ingrese la contraseña de administrador para borrar asistencia:');
         if (pass !== 'medina2026') return showToast('❌ Contraseña incorrecta');
 
@@ -592,197 +624,210 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Medina Payroll Logic
-    let medinaPayroll = JSON.parse(localStorage.getItem('medinaPayroll')) || [];
-    let currentPayrollId = null;
+    let nominaRecords = [];
+    let currentNominaId = null;
 
-    window.addMedinaPayrollEmployee = function() {
-        if (medinaPayroll.length >= 10) return showToast('⚠️ Máximo 10 personas permitidas');
-        
-        const name = prompt('Ingrese el nombre del nuevo empleado:');
-        if (!name) return;
+    async function fetchNomina() {
+        const { data, error } = await supabase
+            .from('nomina')
+            .select('*')
+            .order('created_at', { ascending: false });
 
-        const newEmp = {
-            id: Date.now(),
-            name,
-            quincena: 0,
-            diario: 0,
-            faltas: 0,
-            otros: 0,
-            impuestos: 0,
-            total: 0
-        };
+        if (error) {
+            console.error('Error fetching nomina:', error);
+        } else {
+            nominaRecords = data || [];
+            renderMedinaPayroll();
+        }
+    }
 
-        medinaPayroll.push(newEmp);
-        localStorage.setItem('medinaPayroll', JSON.stringify(medinaPayroll));
-        renderMedinaPayroll();
-        showToast('👤 Empleado agregado');
-    };
+    function subscribeNomina() {
+        supabase
+            .channel('realtime-nomina')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'nomina' }, payload => {
+                fetchNomina();
+            })
+            .subscribe();
+    }
 
-    window.renderMedinaPayroll = function() {
-        const list = document.getElementById('payroll-list');
-        const count = document.getElementById('payroll-count');
-        if (!list) return;
-
-        count.textContent = medinaPayroll.length;
-        list.innerHTML = medinaPayroll.map(emp => `
-            <div onclick="selectMedinaPayrollEmployee(${emp.id})" class="payroll-item ${currentPayrollId === emp.id ? 'active' : ''}" style="padding: 15px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px;">
-                <div style="width: 35px; height: 35px; background: ${currentPayrollId === emp.id ? 'white' : 'var(--primary)'}; color: ${currentPayrollId === emp.id ? 'var(--primary)' : 'white'}; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800;">
-                    ${emp.name.charAt(0)}
-                </div>
-                <div>
-                    <div style="font-weight: 700; font-size: 14px;">${emp.name}</div>
-                    <div style="font-size: 11px; color: ${currentPayrollId === emp.id ? 'white' : 'var(--text-secondary)'}; opacity: 0.8;">Neto: $${emp.total.toLocaleString()}</div>
-                </div>
-            </div>
-        `).join('');
-    };
-
-    window.selectMedinaPayrollEmployee = function(id) {
-        currentPayrollId = id;
-        const emp = medinaPayroll.find(e => e.id === id);
-        if (!emp) return;
-
+    window.newMedinaPayrollRecord = function () {
+        currentNominaId = null;
         document.getElementById('payroll-placeholder').style.display = 'none';
         document.getElementById('payroll-detail-container').style.display = 'flex';
-        
-        document.getElementById('p-det-name').textContent = emp.name;
-        document.getElementById('p-det-quincena').value = emp.quincena;
-        document.getElementById('p-det-faltas').value = emp.faltas;
-        document.getElementById('p-det-h-desc').value = emp.h_desc || 0;
-        document.getElementById('p-det-extras').value = emp.extras || 0;
-        document.getElementById('p-det-festivos').value = emp.festivos || 0;
-        document.getElementById('p-det-otros').value = emp.otros;
-        document.getElementById('p-det-otros-concepto').value = emp.otros_concepto || '';
-        document.getElementById('p-det-impuestos').value = emp.impuestos;
-        document.getElementById('p-det-periodo').value = emp.periodo || '';
-        document.getElementById('p-det-fecha-pago').value = emp.fecha_pago || '';
+
+        document.getElementById('p-det-name').value = '';
+        document.getElementById('p-det-puesto').value = '';
+        document.getElementById('p-det-periodo-inicio').value = '';
+        document.getElementById('p-det-periodo-fin').value = '';
+        document.getElementById('p-det-sueldo').value = 0;
+        document.getElementById('p-det-bonos').value = 0;
+        document.getElementById('p-det-descuentos').value = 0;
+        document.getElementById('p-det-estado').value = 'pendiente';
+        document.getElementById('p-det-notas').value = '';
 
         updatePayrollCalculations();
         renderMedinaPayroll();
     };
 
-    window.updatePayrollCalculations = function() {
-        const quincena = parseFloat(document.getElementById('p-det-quincena').value) || 0;
-        const faltas = parseInt(document.getElementById('p-det-faltas').value) || 0;
-        const h_desc_hrs = parseFloat(document.getElementById('p-det-h-desc').value) || 0;
-        const extras = parseFloat(document.getElementById('p-det-extras').value) || 0;
-        const festivos = parseFloat(document.getElementById('p-det-festivos').value) || 0;
-        const otros = parseFloat(document.getElementById('p-det-otros').value) || 0;
-        const impPct = parseFloat(document.getElementById('p-det-impuestos').value) || 0;
+    window.renderMedinaPayroll = function () {
+        const list = document.getElementById('payroll-list');
+        const count = document.getElementById('payroll-count');
+        if (!list) return;
 
-        const diario = quincena / 15;
-        const hora = diario / 8;
-        
-        const faltasDesc = diario * faltas;
-        const hDescMonto = hora * h_desc_hrs;
-        
-        const subtotal = quincena + extras + festivos - faltasDesc - hDescMonto - otros;
-        const impDesc = subtotal * (impPct / 100);
-        const total = subtotal - impDesc;
-
-        document.getElementById('p-det-diario').value = diario.toFixed(2);
-        document.getElementById('p-det-hora').value = hora.toFixed(2);
-        document.getElementById('p-det-faltas-desc').textContent = faltasDesc.toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('p-det-h-desc-monto').textContent = hDescMonto.toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('p-det-impuestos-desc').textContent = impDesc.toLocaleString(undefined, {minimumFractionDigits: 2});
-        document.getElementById('p-det-total').textContent = total.toLocaleString(undefined, {minimumFractionDigits: 2});
+        count.textContent = nominaRecords.length;
+        list.innerHTML = nominaRecords.map(nom => `
+            <div onclick="selectMedinaPayrollEmployee('${nom.id}')" class="payroll-item ${currentNominaId === nom.id ? 'active' : ''}" style="padding: 15px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 35px; height: 35px; background: ${currentNominaId === nom.id ? 'white' : 'var(--primary)'}; color: ${currentNominaId === nom.id ? 'var(--primary)' : 'white'}; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                        ${nom.empleado_nombre ? nom.empleado_nombre.charAt(0).toUpperCase() : '?'}
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 14px;">${nom.empleado_nombre || 'Sin nombre'}</div>
+                        <div style="font-size: 11px; color: ${currentNominaId === nom.id ? 'white' : 'var(--text-secondary)'}; opacity: 0.8;">Neto: $${(nom.total_pagar || 0).toLocaleString()}</div>
+                    </div>
+                </div>
+                <div>
+                    <span style="font-size: 10px; padding: 3px 8px; border-radius: 20px; font-weight: 600; 
+                        ${nom.estado === 'pagado' ? 'background: rgba(16,185,129,0.2); color: var(--success);' :
+                nom.estado === 'cancelado' ? 'background: rgba(239,68,68,0.2); color: var(--danger);' :
+                    'background: rgba(245,158,11,0.2); color: #F59E0B;'}">
+                        ${nom.estado ? nom.estado.toUpperCase() : 'PENDIENTE'}
+                    </span>
+                </div>
+            </div>
+        `).join('');
     };
 
-    window.saveMedinaPayrollData = function() {
-        if (!currentPayrollId) return;
-        const index = medinaPayroll.findIndex(e => e.id === currentPayrollId);
-        if (index === -1) return;
+    window.selectMedinaPayrollEmployee = function (id) {
+        currentNominaId = id;
+        const nom = nominaRecords.find(n => n.id === id);
+        if (!nom) return;
 
-        const quincena = parseFloat(document.getElementById('p-det-quincena').value) || 0;
-        const faltas = parseInt(document.getElementById('p-det-faltas').value) || 0;
-        const h_desc = parseFloat(document.getElementById('p-det-h-desc').value) || 0;
-        const extras = parseFloat(document.getElementById('p-det-extras').value) || 0;
-        const festivos = parseFloat(document.getElementById('p-det-festivos').value) || 0;
-        const otros = parseFloat(document.getElementById('p-det-otros').value) || 0;
-        const otros_concepto = document.getElementById('p-det-otros-concepto').value;
-        const impPct = parseFloat(document.getElementById('p-det-impuestos').value) || 0;
-        const periodo = document.getElementById('p-det-periodo').value;
-        const fecha_pago = document.getElementById('p-det-fecha-pago').value;
+        document.getElementById('payroll-placeholder').style.display = 'none';
+        document.getElementById('payroll-detail-container').style.display = 'flex';
 
-        const total = parseFloat(document.getElementById('p-det-total').textContent.replace(/,/g, ''));
+        document.getElementById('p-det-name').value = nom.empleado_nombre || '';
+        document.getElementById('p-det-puesto').value = nom.puesto || '';
+        document.getElementById('p-det-periodo-inicio').value = nom.periodo_inicio || '';
+        document.getElementById('p-det-periodo-fin').value = nom.periodo_fin || '';
+        document.getElementById('p-det-sueldo').value = nom.sueldo_base || 0;
+        document.getElementById('p-det-bonos').value = nom.bonos || 0;
+        document.getElementById('p-det-descuentos').value = nom.descuentos || 0;
+        document.getElementById('p-det-estado').value = nom.estado || 'pendiente';
+        document.getElementById('p-det-notas').value = nom.notas || '';
 
-        medinaPayroll[index] = {
-            ...medinaPayroll[index],
-            quincena,
-            diario: quincena / 15,
-            hora: (quincena / 15) / 8,
-            faltas,
-            h_desc,
-            extras,
-            festivos,
-            otros,
-            otros_concepto,
-            impuestos: impPct,
-            periodo,
-            fecha_pago,
-            total
+        updatePayrollCalculations();
+        renderMedinaPayroll();
+    };
+
+    window.updatePayrollCalculations = function () {
+        const sueldo_base = parseFloat(document.getElementById('p-det-sueldo').value) || 0;
+        const bonos = parseFloat(document.getElementById('p-det-bonos').value) || 0;
+        const descuentos = parseFloat(document.getElementById('p-det-descuentos').value) || 0;
+
+        const total_pagar = sueldo_base + bonos - descuentos;
+
+        document.getElementById('p-det-total').textContent = total_pagar.toLocaleString(undefined, { minimumFractionDigits: 2 });
+    };
+
+    window.saveMedinaPayrollData = async function () {
+        const empleado_nombre = document.getElementById('p-det-name').value.trim();
+        const puesto = document.getElementById('p-det-puesto').value.trim();
+        const periodo_inicio = document.getElementById('p-det-periodo-inicio').value;
+        const periodo_fin = document.getElementById('p-det-periodo-fin').value;
+        const sueldo_base = parseFloat(document.getElementById('p-det-sueldo').value) || 0;
+        const bonos = parseFloat(document.getElementById('p-det-bonos').value) || 0;
+        const descuentos = parseFloat(document.getElementById('p-det-descuentos').value) || 0;
+        const estado = document.getElementById('p-det-estado').value;
+        const notas = document.getElementById('p-det-notas').value.trim();
+
+        const total_pagar = sueldo_base + bonos - descuentos;
+
+        if (!empleado_nombre) {
+            showToast('⚠️ Ingresa el nombre del empleado');
+            return;
+        }
+
+        const payload = {
+            empleado_nombre,
+            puesto,
+            periodo_inicio: periodo_inicio || null,
+            periodo_fin: periodo_fin || null,
+            sueldo_base,
+            bonos,
+            descuentos,
+            total_pagar,
+            estado,
+            notas
         };
 
-        localStorage.setItem('medinaPayroll', JSON.stringify(medinaPayroll));
-        renderMedinaPayroll();
-        showToast('💾 Nómina guardada');
+        let error;
+        if (currentNominaId) {
+            const res = await supabase.from('nomina').update(payload).eq('id', currentNominaId);
+            error = res.error;
+        } else {
+            const res = await supabase.from('nomina').insert([payload]);
+            error = res.error;
+        }
+
+        if (error) {
+            alert('Error al guardar nómina: ' + error.message);
+        } else {
+            showToast('💾 Nómina guardada correctamente');
+            if (!currentNominaId) {
+                newMedinaPayrollRecord(); // Reset format for next creation
+            }
+        }
     };
 
-    window.downloadMedinaPayrollPDF = function() {
-        const emp = medinaPayroll.find(e => e.id === currentPayrollId);
-        if (!emp) return;
+    window.downloadMedinaPayrollPDF = function () {
+        if (!currentNominaId) return;
+        const nom = nominaRecords.find(e => e.id === currentNominaId);
+        if (!nom) return;
 
         const element = document.createElement('div');
         element.style.padding = '40px';
         element.style.fontFamily = 'Inter, sans-serif';
         element.style.color = '#333';
-        
-        const subtotal = emp.quincena + emp.extras + emp.festivos;
-        const deductions = (emp.diario * emp.faltas) + (emp.hora * emp.h_desc) + emp.otros;
-        const taxes = (subtotal - deductions) * (emp.impuestos / 100);
 
         element.innerHTML = `
             <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #0066FF; padding-bottom: 20px; margin-bottom: 30px;">
                 <div>
                     <h1 style="color: #0066FF; margin: 0; font-size: 24px;">CLÍNICA MEDINA</h1>
-                    <p style="margin: 5px 0; color: #666;">Salud Puebla - Recibo de Nómina</p>
+                    <p style="margin: 5px 0; color: #666;">Recibo de Nómina</p>
                 </div>
                 <div style="text-align: right;">
-                    <p style="margin: 0; font-weight: 700;">FECHA DE PAGO: ${emp.fecha_pago || '--/--/--'}</p>
-                    <p style="margin: 5px 0; color: #666;">PERIODO: ${emp.periodo || 'N/A'}</p>
+                    <p style="margin: 0; font-weight: 700;">ESTADO: ${nom.estado ? nom.estado.toUpperCase() : 'PENDIENTE'}</p>
+                    <p style="margin: 5px 0; color: #666;">PERIODO: ${nom.periodo_inicio || '--'} AL ${nom.periodo_fin || '--'}</p>
                 </div>
             </div>
 
             <div style="margin-bottom: 30px; background: #f8faff; padding: 20px; border-radius: 12px; border: 1px solid #e1e8f5;">
-                <h2 style="margin: 0; font-size: 18px; color: #0066FF;">${emp.name.toUpperCase()}</h2>
-                <p style="margin: 5px 0; font-size: 14px; color: #666;">Colaborador de Clínica Medina</p>
+                <h2 style="margin: 0; font-size: 18px; color: #0066FF;">${(nom.empleado_nombre || '').toUpperCase()}</h2>
+                <p style="margin: 5px 0; font-size: 14px; color: #666;">Puesto: ${nom.puesto || 'N/A'}</p>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
                 <div>
                     <h3 style="border-bottom: 1px solid #eee; padding-bottom: 10px; font-size: 14px; color: #0066FF;">PERCEPCIONES</h3>
                     <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                        <tr><td style="padding: 8px 0;">Salario Quincenal</td><td style="text-align: right; font-weight: 600;">$${emp.quincena.toLocaleString()}</td></tr>
-                        <tr><td style="padding: 8px 0;">Horas Extras</td><td style="text-align: right; font-weight: 600;">$${(emp.extras || 0).toLocaleString()}</td></tr>
-                        <tr><td style="padding: 8px 0;">Días Festivos</td><td style="text-align: right; font-weight: 600;">$${(emp.festivos || 0).toLocaleString()}</td></tr>
-                        <tr style="border-top: 1px solid #eee;"><td style="padding: 12px 0; font-weight: 700;">Total Percepciones</td><td style="text-align: right; font-weight: 700; color: #10B981;">$${subtotal.toLocaleString()}</td></tr>
+                        <tr><td style="padding: 8px 0;">Sueldo Base</td><td style="text-align: right; font-weight: 600;">$${(nom.sueldo_base || 0).toLocaleString()}</td></tr>
+                        <tr><td style="padding: 8px 0;">Bonos / Extras</td><td style="text-align: right; font-weight: 600;">$${(nom.bonos || 0).toLocaleString()}</td></tr>
+                        <tr style="border-top: 1px solid #eee;"><td style="padding: 12px 0; font-weight: 700;">Total Percepciones</td><td style="text-align: right; font-weight: 700; color: #10B981;">$${((nom.sueldo_base || 0) + (nom.bonos || 0)).toLocaleString()}</td></tr>
                     </table>
                 </div>
                 <div>
                     <h3 style="border-bottom: 1px solid #eee; padding-bottom: 10px; font-size: 14px; color: #EF4444;">DEDUCCIONES</h3>
                     <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                        <tr><td style="padding: 8px 0;">Faltas (${emp.faltas} días)</td><td style="text-align: right; font-weight: 600;">-$${(emp.diario * emp.faltas).toLocaleString()}</td></tr>
-                        <tr><td style="padding: 8px 0;">Descuento Horas (${emp.h_desc} hrs)</td><td style="text-align: right; font-weight: 600;">-$${(emp.hora * emp.h_desc).toLocaleString()}</td></tr>
-                        <tr><td style="padding: 8px 0;">${emp.otros_concepto || 'Otros Descuentos'}</td><td style="text-align: right; font-weight: 600;">-$${emp.otros.toLocaleString()}</td></tr>
-                        <tr><td style="padding: 8px 0;">Retención Impuestos (${emp.impuestos}%)</td><td style="text-align: right; font-weight: 600;">-$${taxes.toLocaleString()}</td></tr>
-                        <tr style="border-top: 1px solid #eee;"><td style="padding: 12px 0; font-weight: 700;">Total Deducciones</td><td style="text-align: right; font-weight: 700; color: #EF4444;">-$${(deductions + taxes).toLocaleString()}</td></tr>
+                        <tr><td style="padding: 8px 0;">Descuentos</td><td style="text-align: right; font-weight: 600;">-$${(nom.descuentos || 0).toLocaleString()}</td></tr>
+                        <tr style="border-top: 1px solid #eee;"><td style="padding: 12px 0; font-weight: 700;">Total Deducciones</td><td style="text-align: right; font-weight: 700; color: #EF4444;">-$${(nom.descuentos || 0).toLocaleString()}</td></tr>
                     </table>
                 </div>
             </div>
 
             <div style="margin-top: 50px; padding: 25px; background: #0066FF; color: white; border-radius: 12px; text-align: right;">
-                <p style="margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Neto a Recibir</p>
-                <h2 style="margin: 5px 0 0; font-size: 32px; font-weight: 800;">$${emp.total.toLocaleString()}</h2>
+                <p style="margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Neto a Pagar</p>
+                <h2 style="margin: 5px 0 0; font-size: 32px; font-weight: 800;">$${(nom.total_pagar || 0).toLocaleString()}</h2>
             </div>
 
             <div style="margin-top: 80px; display: flex; justify-content: space-between;">
@@ -799,7 +844,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const opt = {
             margin: 1,
-            filename: `Nomina_${emp.name.replace(/ /g, '_')}_${emp.periodo.replace(/ /g, '_')}.pdf`,
+            filename: `Nomina_${(nom.empleado_nombre || 'Empleado').replace(/ /g, '_')}_${(nom.periodo_inicio || 'fecha')}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
@@ -808,19 +853,20 @@ document.addEventListener('DOMContentLoaded', () => {
         html2pdf().set(opt).from(element).save();
     };
 
-    window.deleteMedinaPayrollEmployee = function() {
-        if (!currentPayrollId) return;
-        if (!confirm('¿Eliminar a este empleado de la nómina?')) return;
+    window.deleteMedinaPayrollEmployee = async function () {
+        if (!currentNominaId) return;
+        if (!confirm('¿Eliminar a este registro de nómina?')) return;
 
-        medinaPayroll = medinaPayroll.filter(e => e.id !== currentPayrollId);
-        localStorage.setItem('medinaPayroll', JSON.stringify(medinaPayroll));
-        
-        currentPayrollId = null;
-        document.getElementById('payroll-detail-container').style.display = 'none';
-        document.getElementById('payroll-placeholder').style.display = 'flex';
-        
-        renderMedinaPayroll();
-        showToast('🗑 Empleado eliminado');
+        const { error } = await supabase.from('nomina').delete().eq('id', currentNominaId);
+
+        if (error) {
+            alert('Error al eliminar nómina: ' + error.message);
+        } else {
+            currentNominaId = null;
+            document.getElementById('payroll-detail-container').style.display = 'none';
+            document.getElementById('payroll-placeholder').style.display = 'flex';
+            showToast('🗑 Registro eliminado');
+        }
     };
 
     // Mobile Menu Toggle
@@ -840,7 +886,7 @@ document.addEventListener('DOMContentLoaded', () => {
         item.addEventListener('click', () => {
             const pageName = item.getAttribute('data-page');
             const pageId = `page-${pageName}`;
-            
+
             navItems.forEach(n => n.classList.remove('active'));
             item.classList.add('active');
             pages.forEach(page => {
@@ -871,23 +917,38 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- AGENDA LOGIC ---
-    let medinaAgenda = {};
-    try {
-        const stored = localStorage.getItem('medinaAgenda');
-        if (stored && stored !== 'undefined') {
-            medinaAgenda = JSON.parse(stored);
+    let citasAgenda = [];
+
+    async function fetchCitasAgenda() {
+        const { data, error } = await supabase
+            .from('citas')
+            .select('*')
+            .order('created_at', { ascending: true }); // Mantiene el orden de creación para rellenar los slots
+
+        if (error) {
+            console.error('Error fetching citas:', error);
+        } else {
+            citasAgenda = data || [];
+            renderMedinaAgenda();
         }
-    } catch(e) {
-        console.error('Error parsing medinaAgenda from localStorage', e);
-        medinaAgenda = {};
     }
+
+    function subscribeCitasAgenda() {
+        supabase
+            .channel('realtime-citas')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'citas' }, payload => {
+                fetchCitasAgenda();
+            })
+            .subscribe();
+    }
+
     let currentAgendaWeekStart = new Date();
     currentAgendaWeekStart.setHours(0, 0, 0, 0);
     const agDay = currentAgendaWeekStart.getDay();
     const agDiff = currentAgendaWeekStart.getDate() - agDay + (agDay === 0 ? -6 : 1);
     currentAgendaWeekStart.setDate(agDiff);
 
-    window.changeAgendaWeek = function(offset) {
+    window.changeAgendaWeek = function (offset) {
         currentAgendaWeekStart.setDate(currentAgendaWeekStart.getDate() + (offset * 7));
         renderMedinaAgenda();
     };
@@ -899,122 +960,150 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${year}-${month}-${day}`;
     }
 
-    window.renderMedinaAgenda = function() {
+    window.renderMedinaAgenda = function () {
         const grid = document.getElementById('agenda-grid');
-        if(!grid) return;
-        
+        if (!grid) return;
+
         try {
             // Update Label
             const endOfWeek = new Date(currentAgendaWeekStart);
-        endOfWeek.setDate(currentAgendaWeekStart.getDate() + 5); // Saturday
-        const options = { month: 'short', day: 'numeric' };
-        document.getElementById('agenda-week-label').textContent = 
-            `Del ${currentAgendaWeekStart.toLocaleDateString('es-ES', options)} al ${endOfWeek.toLocaleDateString('es-ES', options)}`;
+            endOfWeek.setDate(currentAgendaWeekStart.getDate() + 5); // Saturday
+            const options = { month: 'short', day: 'numeric' };
+            document.getElementById('agenda-week-label').textContent =
+                `Del ${currentAgendaWeekStart.toLocaleDateString('es-ES', options)} al ${endOfWeek.toLocaleDateString('es-ES', options)}`;
 
-        let html = '<div class="agenda-grid-container">';
-        
-        // Header
-        html += `<div class="agenda-header-cell">Hora</div>`;
-        const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-        const datesThisWeek = [];
-        for(let i=0; i<6; i++) {
-            let d = new Date(currentAgendaWeekStart);
-            d.setDate(currentAgendaWeekStart.getDate() + i);
-            datesThisWeek.push(d);
-            html += `<div class="agenda-header-cell">${days[i]}<br><small style="font-weight: normal;">${d.getDate()}</small></div>`;
-        }
-        html += '</div>';
+            // Build map from citas array
+            const agendaMap = {};
+            citasAgenda.forEach(cita => {
+                if (!agendaMap[cita.fecha]) agendaMap[cita.fecha] = {};
+                if (!agendaMap[cita.fecha][cita.hora]) agendaMap[cita.fecha][cita.hora] = [];
+                agendaMap[cita.fecha][cita.hora].push(cita);
+            });
 
-        const shifts = ['07:00 am', '11:00 am', '15:00 pm'];
-        shifts.forEach(shift => {
-            html += '<div class="agenda-grid-container">';
-            html += `<div class="agenda-time-cell">${shift}</div>`;
-            
-            for(let d=0; d<6; d++) {
-                const dateStr = formatDateForAgenda(datesThisWeek[d]);
-                html += `<div class="agenda-day-col">`;
-                
-                if(!medinaAgenda[dateStr]) medinaAgenda[dateStr] = {};
-                if(!medinaAgenda[dateStr][shift]) medinaAgenda[dateStr][shift] = [null, null, null, null];
-                
-                for(let slot=0; slot<4; slot++) {
-                    const data = medinaAgenda[dateStr][shift][slot];
-                    if (data) {
-                        html += `<div class="agenda-slot ${data.type}" onclick="openAgendaModal('${dateStr}', '${shift}', ${slot})">${data.name}</div>`;
-                    } else {
-                        html += `<div class="agenda-slot" onclick="openAgendaModal('${dateStr}', '${shift}', ${slot})"><i class="fas fa-plus"></i></div>`;
-                    }
-                }
-                html += `</div>`;
+            let html = '<div class="agenda-grid-container">';
+
+            // Header
+            html += `<div class="agenda-header-cell">Hora</div>`;
+            const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+            const datesThisWeek = [];
+            for (let i = 0; i < 6; i++) {
+                let d = new Date(currentAgendaWeekStart);
+                d.setDate(currentAgendaWeekStart.getDate() + i);
+                datesThisWeek.push(d);
+                html += `<div class="agenda-header-cell">${days[i]}<br><small style="font-weight: normal;">${d.getDate()}</small></div>`;
             }
             html += '</div>';
-        });
+
+            const shifts = ['07:00 am', '11:00 am', '15:00 pm'];
+            shifts.forEach(shift => {
+                html += '<div class="agenda-grid-container">';
+                html += `<div class="agenda-time-cell">${shift}</div>`;
+
+                for (let d = 0; d < 6; d++) {
+                    const dateStr = formatDateForAgenda(datesThisWeek[d]);
+                    html += `<div class="agenda-day-col">`;
+
+                    const citasDelTurno = agendaMap[dateStr]?.[shift] || [];
+
+                    for (let slot = 0; slot < 4; slot++) {
+                        const data = citasDelTurno[slot];
+                        if (data) {
+                            html += `<div class="agenda-slot ${data.estado}" onclick="openAgendaModal('${dateStr}', '${shift}', '${data.id}')">${data.paciente_nombre}</div>`;
+                        } else {
+                            html += `<div class="agenda-slot" onclick="openAgendaModal('${dateStr}', '${shift}', null)"><i class="fas fa-plus"></i></div>`;
+                        }
+                    }
+                    html += `</div>`;
+                }
+                html += '</div>';
+            });
 
             grid.innerHTML = html;
-            localStorage.setItem('medinaAgenda', JSON.stringify(medinaAgenda));
         } catch (error) {
             grid.innerHTML = `<div style="padding: 20px; color: red;">Error: ${error.message}</div>`;
             console.error(error);
         }
     };
 
-    window.openAgendaModal = function(dateStr, time, slot) {
+    window.openAgendaModal = function (dateStr, time, id) {
         document.getElementById('agenda-date').value = dateStr;
         document.getElementById('agenda-time').value = time;
-        document.getElementById('agenda-slot').value = slot;
-        
-        const data = medinaAgenda[dateStr] && medinaAgenda[dateStr][time] && medinaAgenda[dateStr][time][slot];
-        if (data) {
-            document.getElementById('agenda-patient-name').value = data.name;
-            document.getElementById('agenda-patient-type').value = data.type;
+        document.getElementById('agenda-id').value = id || '';
+
+        if (id) {
+            const data = citasAgenda.find(c => c.id === id);
+            if (data) {
+                document.getElementById('agenda-patient-name').value = data.paciente_nombre || '';
+                document.getElementById('agenda-patient-type').value = data.estado || 'fijo';
+                document.getElementById('agenda-notas').value = data.notas || '';
+            }
         } else {
             document.getElementById('agenda-patient-name').value = '';
             document.getElementById('agenda-patient-type').value = 'fijo';
+            document.getElementById('agenda-notas').value = '';
         }
-        
+
         document.getElementById('agenda-modal').style.display = 'flex';
     };
 
-    window.saveAgendaSlot = function() {
-        const dateStr = document.getElementById('agenda-date').value;
-        const time = document.getElementById('agenda-time').value;
-        const slot = parseInt(document.getElementById('agenda-slot').value);
-        const name = document.getElementById('agenda-patient-name').value.trim();
-        const type = document.getElementById('agenda-patient-type').value;
+    window.saveAgendaSlot = async function () {
+        const id = document.getElementById('agenda-id').value;
+        const fecha = document.getElementById('agenda-date').value;
+        const hora = document.getElementById('agenda-time').value;
+        const paciente_nombre = document.getElementById('agenda-patient-name').value.trim();
+        const estado = document.getElementById('agenda-patient-type').value;
+        const notas = document.getElementById('agenda-notas').value.trim();
 
-        if (!name) {
+        if (!paciente_nombre) {
             showToast('⚠️ Ingresa el nombre del paciente');
             return;
         }
 
-        if(!medinaAgenda[dateStr]) medinaAgenda[dateStr] = {};
-        if(!medinaAgenda[dateStr][time]) medinaAgenda[dateStr][time] = [null, null, null, null];
-        
-        medinaAgenda[dateStr][time][slot] = { name, type };
-        localStorage.setItem('medinaAgenda', JSON.stringify(medinaAgenda));
-        
-        closeModal('agenda-modal');
-        renderMedinaAgenda();
-        showToast('✅ Turno guardado');
+        const payload = { fecha, hora, paciente_nombre, estado, notas };
+
+        let error;
+        if (id) {
+            const res = await supabase.from('citas').update(payload).eq('id', id);
+            error = res.error;
+        } else {
+            const res = await supabase.from('citas').insert([payload]);
+            error = res.error;
+        }
+
+        if (error) {
+            alert('Error al guardar cita: ' + error.message);
+        } else {
+            closeModal('agenda-modal');
+            showToast('✅ Turno guardado');
+        }
     };
 
-    window.deleteAgendaSlot = function() {
-        const dateStr = document.getElementById('agenda-date').value;
-        const time = document.getElementById('agenda-time').value;
-        const slot = parseInt(document.getElementById('agenda-slot').value);
-
-        if(medinaAgenda[dateStr] && medinaAgenda[dateStr][time]) {
-            medinaAgenda[dateStr][time][slot] = null;
-            localStorage.setItem('medinaAgenda', JSON.stringify(medinaAgenda));
+    window.deleteAgendaSlot = async function () {
+        const id = document.getElementById('agenda-id').value;
+        if (!id) {
+            closeModal('agenda-modal');
+            return;
         }
-        
-        closeModal('agenda-modal');
-        renderMedinaAgenda();
-        showToast('🗑 Turno liberado');
+
+        if (!confirm('¿Seguro que desea liberar este turno?')) return;
+
+        const { error } = await supabase.from('citas').delete().eq('id', id);
+
+        if (error) {
+            alert('Error al eliminar cita: ' + error.message);
+        } else {
+            closeModal('agenda-modal');
+            showToast('🗑 Turno liberado');
+        }
     };
 
     // Initial load
-    renderPatients();
+    fetchPatients();
+    subscribePatients();
+    fetchCitasAgenda();
+    subscribeCitasAgenda();
+    fetchNomina();
+    subscribeNomina();
     renderMemberships();
     renderMedinaFinances();
     renderMedinaInventory();
