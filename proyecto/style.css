@@ -441,6 +441,9 @@ header {
 .table-container {
     background: rgba(255, 255, 255, 0.05);
     padding: 2px;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 p, h1, h2, h3, h4, span, td {
@@ -462,12 +465,19 @@ p, h1, h2, h3, h4, span, td {
 }
 
 /* Premium Agenda Grid */
+.agenda-scroll-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 10px;
+}
 .agenda-grid-container {
     display: grid;
     grid-template-columns: 80px repeat(6, 1fr);
     gap: 12px;
     margin-bottom: 12px;
     padding: 0 15px;
+    min-width: 800px;
 }
 .agenda-grid-container:first-child {
     padding-top: 15px;

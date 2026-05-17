@@ -980,7 +980,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 agendaMap[cita.fecha][cita.hora].push(cita);
             });
 
-            let html = '<div class="agenda-grid-container">';
+            let html = '<div class="agenda-scroll-wrapper"><div class="agenda-grid-container">';
 
             // Header
             html += `<div class="agenda-header-cell">Hora</div>`;
@@ -1017,6 +1017,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 html += '</div>';
             });
+
+            html += '</div></div>';
 
             grid.innerHTML = html;
         } catch (error) {
