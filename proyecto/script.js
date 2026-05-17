@@ -1001,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 for (let d = 0; d < 6; d++) {
                     const dateStr = formatDateForAgenda(datesThisWeek[d]);
-                    html += `<div class="agenda-day-col">`;
+                    html += `<div class="agenda-day-col" data-day="${days[d]} ${datesThisWeek[d].getDate()}">`;
 
                     const citasDelTurno = agendaMap[dateStr]?.[shift] || [];
 
